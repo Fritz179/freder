@@ -1,4 +1,4 @@
-use crate::math::{Line, Transform, Transformable};
+use crate::math::{Line, Transform2D, Transformable};
 
 use super::{Canvas};
 

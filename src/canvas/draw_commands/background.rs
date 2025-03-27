@@ -1,4 +1,4 @@
-use crate::{canvas::{color::Color, Canvas}, math::{Clip, Rect, Transform, Transformable, Vec2}};
+use crate::{canvas::{color::Color, Canvas}, math::{Clip, Rect, Transform2D, Transformable, Vec2}};
 
 use super::Draw;
 
@@ -19,12 +19,12 @@ impl Draw for Background {
 
 }
 
-impl<T, S> Transformable<T, S> for Background {
-    fn scale(&mut self, _factor:  &Vec2<S>) {
+impl<T: Copy, S: Copy> Transformable<T, S> for Background {
+    fn scale(&mut self, _factor:  S) {
         // Do nothing
     }
 
-    fn translate(&mut self, _offset: &Vec2<T>) {
+    fn translate(&mut self, _offset: Vec2<T>) {
         // Do nothing
     }
 }

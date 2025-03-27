@@ -34,11 +34,11 @@ pub struct LineCommand {
 }
 
 impl Transformable for LineCommand {
-    fn scale(&mut self, factor: &Vec2<f32>) {
+    fn scale(&mut self, factor: f32) {
         self.line.scale(factor);
     }
 
-    fn translate(&mut self, offset: &Vec2<i32>) {
+    fn translate(&mut self, offset: Vec2<i32>) {
         <Line as Transformable<i32, f32>>::translate(&mut self.line, offset);
     }
 }

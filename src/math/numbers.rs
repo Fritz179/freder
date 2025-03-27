@@ -1,4 +1,6 @@
 pub trait Zero {
+    const ZERO: Self;
+
     fn zero() -> Self;
 
     fn is_zero(&self) -> bool;
@@ -11,6 +13,8 @@ pub trait Zero {
 macro_rules! zero_impl { 
     ($t:ty, $v:expr) => {
         impl Zero for $t {
+            const ZERO: $t = $v;
+
             #[inline]
             fn zero() -> $t {
                 $v
@@ -41,6 +45,8 @@ zero_impl!(f32, 0.0);
 zero_impl!(f64, 0.0);
 
 pub trait One {
+    const ONE: Self;
+
     fn one() -> Self;
 
     fn is_one(&self) -> bool;
@@ -53,6 +59,8 @@ pub trait One {
 macro_rules! one_impl { 
     ($t:ty, $v:expr) => {
         impl One for $t {
+            const ONE: $t = $v;
+
             #[inline]
             fn one() -> $t {
                 $v

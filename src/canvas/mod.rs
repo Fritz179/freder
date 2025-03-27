@@ -2,7 +2,7 @@ pub mod color;
 use color::Color;
 use draw_commands::{Background, Draw, DrawShape, LineOptions};
 
-use crate::math::{Clip, Line, Rect, Transform, Transformable, Vec2};
+use crate::math::{Clip, Line, Rect, Transform2D, Transformable, Vec2};
 
 pub mod draw_commands;
 
@@ -11,7 +11,7 @@ pub struct View {
         clip: Rect,
 
         // How the view is transformed
-        transform: Option<Transform>,
+        transform: Option<Transform2D>,
 }
 
 pub struct Canvas {
