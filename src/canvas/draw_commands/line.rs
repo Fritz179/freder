@@ -1,6 +1,6 @@
-use crate::{canvas::{color::Color, Canvas}, math::Line};
+use crate::{canvas::{color::Color, Canvas}, math::{Line, Transformable, Vec2}};
 
-use super::DrawCommand;
+use super::{Draw, DrawShape};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct LineOptions {
@@ -28,14 +28,33 @@ pub trait LineOption: Into<LineOptions> {
 
 impl<T: Into<LineOptions>> LineOption for T {}
 
+pub struct LineCommand {
+    line: Line,
+    options: LineOptions,
+}
 
-impl DrawCommand for Line {
+impl Transformable for LineCommand {
+    fn scale(&mut self, factor: &Vec2<f32>) {
+        self.line.scale(factor);
+    }
+
+    fn translate(&mut self, offset: &Vec2<i32>) {
+        <Line as Transformable<i32, f32>>::translate(&mut self.line, offset);
+    }
+}
+
+impl DrawShape for Line {
     type Options = LineOptions;
+    type Command = LineCommand;
 
-    fn draw(self, canvas: &mut Canvas, options: impl Into<Self::Options>) {
-        let options = options.into();
+    fn new_command(self, options: impl Into<Self::Options>) -> Self::Command {
+        LineCommand {  line: self, options: options.into() }
+    }
+}
 
-        let ((x1, y1), (x2, y2)) = self.to_tuple();
+impl Draw for LineCommand {
+    fn draw(&mut self, canvas: &mut Canvas) {
+        let ((x1, y1), (x2, y2)) = self.line.to_tuple();
     
         let dx = (x2 - x1).abs();
         let dy = (y2 - y1).abs();
@@ -48,7 +67,7 @@ impl DrawCommand for Line {
     
         while x != x2 || y != y2 {
             let p = x + y * canvas.width as i32;
-            canvas.buffer[p as usize] = options.color.as_u32();
+            canvas.buffer[p as usize] = self.options.color.as_u32();
     
             let e2 = 2 * err;
             if e2 > -dy {

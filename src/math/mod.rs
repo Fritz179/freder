@@ -14,13 +14,13 @@ mod collisions;
 pub use collisions::*;
 
 pub trait Transformable<T = i32, S = f32> {
-    fn transform(&mut self, transform: Transform<T, S>) {
-        self.scale(transform.scaling);
-        self.translate(transform.translation);
+    fn transform(&mut self, transform: &Transform<T, S>) {
+        self.scale(&transform.scaling);
+        self.translate(&transform.translation);
     }
 
-    fn translate(&mut self, offset: Vec2<T>);
-    fn scale(&mut self, factor: Vec2<S>);
+    fn translate(&mut self, offset: &Vec2<T>);
+    fn scale(&mut self, factor: &Vec2<S>);
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

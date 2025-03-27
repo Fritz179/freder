@@ -1,6 +1,6 @@
-use crate::math::Transformable;
+use crate::math::{Line, Transform, Transformable};
 
-use super::{Canvas, Contextable, Draw};
+use super::{Canvas};
 
 mod line;
 pub use line::*;
@@ -11,25 +11,13 @@ pub use background::*;
 mod marker;
 pub use marker::*;
 
-pub trait DrawCommand {
-    type Options: Copy;
-
-    fn draw(self, canvas: &mut Canvas, options: impl Into<Self::Options>);
+pub trait Draw {
+    fn draw(&mut self, canvas: &mut Canvas);
 }
 
-pub struct DrawCommandInstance<D: DrawCommand> {
-    command: D,
-    options: D::Options,
-}
+pub trait DrawShape {
+    type Options;
+    type Command: Draw + Transformable;
 
-impl<D: DrawCommand> DrawCommandInstance<D> {
-    pub fn new(command: D, options: D::Options) -> Self {
-        Self { command, options }
-    }
-}
-
-impl<D: DrawCommand + Transformable + Copy> Draw for DrawCommandInstance<D> {
-    fn render(&self, canvas: &mut Canvas) {
-        canvas.draw(self.command, self.options);
-    }
+    fn new_command(self, options: impl Into<Self::Options>) -> Self::Command;
 }

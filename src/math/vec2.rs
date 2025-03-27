@@ -115,26 +115,26 @@ vec2_binary_op_impl!(Mul, mul, *, MulAssign, mul_assign, *=);
 
 use num_traits::{FromPrimitive, ToPrimitive};
 
-impl<V, T, S> Transformable<T, S> for Vec2<V>
+impl<T, S> Transformable<T, S> for Vec2<T>
 where
-    V: std::ops::AddAssign<T>,
-    V: ToPrimitive + FromPrimitive,
+    T: std::ops::AddAssign<T> + Copy,
+    T: ToPrimitive + FromPrimitive,
     S: ToPrimitive,
 {
-    fn translate(&mut self, offset: Vec2<T>) {
-        *self += offset;
+    fn translate(&mut self, offset: &Vec2<T>) {
+        *self += *offset;
     }
 
-    fn scale(&mut self, factor: Vec2<S>) {
+    fn scale(&mut self, factor: &Vec2<S>) {
         let x_val = self.x.to_f64().expect("Conversion failed");
         let factor_x = factor.x.to_f64().expect("Conversion failed");
         let new_x = (x_val * factor_x).round();
-        self.x = V::from_f64(new_x).expect("Conversion failed");
+        self.x = T::from_f64(new_x).expect("Conversion failed");
 
         let y_val = self.y.to_f64().expect("Conversion failed");
         let factor_y = factor.y.to_f64().expect("Conversion failed");
         let new_y = (y_val * factor_y).round();
-        self.y = V::from_f64(new_y).expect("Conversion failed");
+        self.y = T::from_f64(new_y).expect("Conversion failed");
     }
 }
 
@@ -145,7 +145,7 @@ impl<V, S> std::ops::Mul<Transform<V, S>> for Vec2<V> where
 
     fn mul(self, rhs: Transform<V, S>) -> Self::Output {
         let mut vec = self;
-        vec.transform(rhs);
+        vec.transform(&rhs);
         vec
     }
 }
@@ -154,6 +154,6 @@ impl<V, S> std::ops::MulAssign<Transform<V, S>> for Vec2<V> where
     Vec2<V>: Transformable<V, S>,
 {
     fn mul_assign(&mut self, rhs: Transform<V, S>) {
-        self.transform(rhs);
+        self.transform(&rhs);
     }
 }

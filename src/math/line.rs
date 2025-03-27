@@ -53,15 +53,13 @@ impl<T> Line<T> {
 
 impl<T, S> Transformable<T, S> for Line<T> where 
     Vec2<T>: Transformable<T, S>,
-    T: Copy,
-    S: Copy,
 {
-    fn translate(&mut self, offset: Vec2<T>) {
+    fn translate(&mut self, offset: &Vec2<T>) {
         self.start.translate(offset);
         self.end.translate(offset);
     }
 
-    fn scale(&mut self, factor: Vec2<S>) {
+    fn scale(&mut self, factor: &Vec2<S>) {
         self.start.scale(factor);
         self.end.scale(factor);
     }

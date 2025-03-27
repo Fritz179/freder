@@ -1,25 +1,30 @@
-use crate::{canvas::{color::Color, Canvas}, math::{Clip, Rect, Transformable, Vec2}};
+use crate::{canvas::{color::Color, Canvas}, math::{Clip, Rect, Transform, Transformable, Vec2}};
 
-use super::DrawCommand;
+use super::Draw;
 
 type BackgroundOptions = Color;
 
-pub struct Background;
+pub struct Background(BackgroundOptions);
 
-impl DrawCommand for Background {
-    type Options = BackgroundOptions;
-
-    fn draw(self, canvas: &mut Canvas, options: impl Into<Self::Options>) {
-        canvas.buffer.fill(options.into().as_u32());
+impl Background {
+    pub fn new(color: impl Into<Color>) -> Self {
+        Self(color.into())
     }
 }
 
+impl Draw for Background {
+    fn draw(&mut self, canvas: &mut Canvas) {
+        canvas.buffer.fill(self.0.as_u32());
+    }
+
+}
+
 impl<T, S> Transformable<T, S> for Background {
-    fn scale(&mut self, _factor: Vec2<S>) {
+    fn scale(&mut self, _factor:  &Vec2<S>) {
         // Do nothing
     }
 
-    fn translate(&mut self, _offset: Vec2<T>) {
+    fn translate(&mut self, _offset: &Vec2<T>) {
         // Do nothing
     }
 }
