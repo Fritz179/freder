@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use crate::math::{Line, Transform2D, Transformable};
 
 use super::{Canvas};
@@ -8,16 +10,35 @@ pub use line::*;
 mod background;
 pub use background::*;
 
-mod marker;
-pub use marker::*;
+mod image;
+pub use image::*;
 
-pub trait Draw {
-    fn draw(&mut self, canvas: &mut Canvas);
+pub trait Render {
+    fn render(&self, canvas: &mut Canvas);
+}
+
+pub trait Command: Transformable + Debug {
+    fn render(&mut self, canvas: &mut Canvas);
+}
+pub trait CloneCommand: Command {
+    fn box_clone(&self) -> Box<dyn CloneCommand>;
+}
+
+impl <T: Command + Clone + 'static> CloneCommand for T  {
+    fn box_clone(&self) -> Box<dyn CloneCommand> {
+        Box::new(self.clone())
+    }
+}
+
+impl Clone for Box<dyn CloneCommand> {
+    fn clone(&self) -> Box<dyn CloneCommand> {
+        self.box_clone()
+    }
 }
 
 pub trait DrawShape {
     type Options;
-    type Command: Draw + Transformable;
+    type Command: Command;
 
-    fn new_command(self, options: impl Into<Self::Options>) -> Self::Command;
+    fn into_renderable(self, options: impl Into<Self::Options>) -> Self::Command;
 }

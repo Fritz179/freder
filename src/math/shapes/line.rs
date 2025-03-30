@@ -1,4 +1,5 @@
-use super::{Transformable, Vec2};
+use crate::math::{Vec2, Transformable};
+
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Line<T = i32> {
@@ -54,6 +55,11 @@ impl<T> Line<T> {
 impl<T: Copy, S: Copy> Transformable<T, S> for Line<T> where 
     Vec2<T>: Transformable<T, S>,
 {
+    fn transform(&mut self, transform: &crate::math::Transform2D<T, S>) {
+        self.start.transform(transform);
+        self.end.transform(transform);
+    }
+
     fn translate(&mut self, offset: Vec2<T>) {
         self.start.translate(offset);
         self.end.translate(offset);

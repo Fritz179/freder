@@ -1,4 +1,12 @@
-use super::{Rect, Line};
+mod line;
+pub use line::Line;
+
+mod rect;
+pub use rect::Rect;
+
+mod triangle;
+pub use triangle::Triangle;
+
 
 // Overlaps = 
 // Encloses =

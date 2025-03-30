@@ -14,3 +14,5 @@ impl From<u32> for Color {
 }
 
 pub const WHITE: Color = Color(0xFFFFFF);
+pub const RED:   Color = Color(0xFF0000);
+pub const GRAY:  Color = Color(0x333333);

@@ -1,6 +1,6 @@
 use crate::{canvas::{color::Color, Canvas}, math::{Line, Transformable, Vec2}};
 
-use super::{Draw, DrawShape};
+use super::{Command, DrawShape, Render};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct LineOptions {
@@ -28,6 +28,7 @@ pub trait LineOption: Into<LineOptions> {
 
 impl<T: Into<LineOptions>> LineOption for T {}
 
+#[derive(Debug, Clone, Copy)]
 pub struct LineCommand {
     line: Line,
     options: LineOptions,
@@ -39,7 +40,7 @@ impl Transformable for LineCommand {
     }
 
     fn translate(&mut self, offset: Vec2<i32>) {
-        <Line as Transformable<i32, f32>>::translate(&mut self.line, offset);
+        <Line as Transformable>::translate(&mut self.line, offset);
     }
 }
 
@@ -47,13 +48,13 @@ impl DrawShape for Line {
     type Options = LineOptions;
     type Command = LineCommand;
 
-    fn new_command(self, options: impl Into<Self::Options>) -> Self::Command {
+    fn into_renderable(self, options: impl Into<Self::Options>) -> Self::Command {
         LineCommand {  line: self, options: options.into() }
     }
 }
 
-impl Draw for LineCommand {
-    fn draw(&mut self, canvas: &mut Canvas) {
+impl Command for LineCommand {
+    fn render(&mut self, canvas: &mut Canvas) {
         let ((x1, y1), (x2, y2)) = self.line.to_tuple();
     
         let dx = (x2 - x1).abs();
@@ -66,8 +67,9 @@ impl Draw for LineCommand {
         let mut y = y1;
     
         while x != x2 || y != y2 {
-            let p = x + y * canvas.width as i32;
-            canvas.buffer[p as usize] = self.options.color.as_u32();
+            if let Some(pixel) = canvas.pixel_mut(x, y) {
+                *pixel = self.options.color.as_u32();
+            }
     
             let e2 = 2 * err;
             if e2 > -dy {

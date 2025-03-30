@@ -20,10 +20,12 @@ impl Window {
         self.window.is_open() && !self.window.is_key_down(Key::Q)
     }
 
-    pub fn render(&mut self, canvas: &Canvas) {
+    pub fn render(&mut self, canvas: &mut Canvas) {
+        canvas.render_markers();
+
         assert_eq!(canvas.get_buffer().len(), self.window.get_size().0 * self.window.get_size().1);
 
-        self.window.update_with_buffer(&canvas.get_buffer(), canvas.width(), canvas.height()).unwrap();
+        self.window.update_with_buffer(canvas.get_buffer(), canvas.width(), canvas.height()).unwrap();
     }
 
     pub fn is_key_down(&self, key: Key) -> bool {

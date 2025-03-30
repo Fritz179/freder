@@ -1,17 +1,12 @@
 mod vector;
 pub use vector::Vec2;
 
-mod line;
-pub use line::Line;
-
-mod rect;
-pub use rect::Rect;
+mod shapes;
+pub use shapes::*;
 
 mod numbers;
 pub use numbers::*;
 
-mod collisions;
-pub use collisions::*;
 
 pub trait Transformable<T: Copy = i32, S: Copy = f32> {
     fn transform(&mut self, transform: &Transform2D<T, S>) {
@@ -46,7 +41,7 @@ impl<T, S> Transform2D<T, S> {
         self.translation = translation;
     }
 
-    pub fn scaling(&self) -> &S {
+    pub fn get_scaling(&self) -> &S {
         &self.scaling
     }
 

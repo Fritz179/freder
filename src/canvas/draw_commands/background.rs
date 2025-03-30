@@ -1,6 +1,6 @@
-use crate::{canvas::{color::Color, Canvas}, math::{Clip, Rect, Transform2D, Transformable, Vec2}};
+use crate::{canvas::{color::Color, Canvas}, math::{Transformable, Vec2}};
 
-use super::Draw;
+use super::Render;
 
 type BackgroundOptions = Color;
 
@@ -12,9 +12,13 @@ impl Background {
     }
 }
 
-impl Draw for Background {
-    fn draw(&mut self, canvas: &mut Canvas) {
-        canvas.buffer.fill(self.0.as_u32());
+impl Render for Background {
+    fn render(&self, canvas: &mut Canvas) {
+        let rect = canvas.view.clip;
+
+        for y in rect.y1()..rect.y2() {
+            canvas.pixel_slice_mut(rect.x1()..rect.x2(), y).fill(self.0.as_u32());
+        }
     }
 
 }
@@ -26,11 +30,5 @@ impl<T: Copy, S: Copy> Transformable<T, S> for Background {
 
     fn translate(&mut self, _offset: Vec2<T>) {
         // Do nothing
-    }
-}
-
-impl Clip for Background {
-    fn clip_rect(self, rect: &Rect) -> Option<Self> {
-        Some(self)
     }
 }
