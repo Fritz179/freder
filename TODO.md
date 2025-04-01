@@ -40,3 +40,9 @@ Marker?
     Markers are drawn at the end, over other things, for debugging and now pixelated event if buffer canvas is used
     Z layers?
     When should they be cleared? copy them into the imageDrawer, but then they must be cleared before reuse
+
+
+Position corner or center of pixel?
+    Scaled line marker should be in the middle, dots/cross also
+    It remains in the corner for rects? 
+    What if it is scaled x4? Player position is float?

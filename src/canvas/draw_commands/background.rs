@@ -17,7 +17,7 @@ impl Render for Background {
         let rect = canvas.view.clip;
 
         for y in rect.y1()..rect.y2() {
-            canvas.pixel_slice_mut(rect.x1()..rect.x2(), y).fill(self.0.as_u32());
+            canvas.pixel_slice_mut(rect.x1()..rect.x2(), y).fill(self.0);
         }
     }
 

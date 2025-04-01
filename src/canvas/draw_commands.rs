@@ -1,8 +1,8 @@
 use std::fmt::Debug;
 
-use crate::math::{Line, Transform2D, Transformable};
+use crate::math::Transformable;
 
-use super::{Canvas};
+use super::Canvas;
 
 mod line;
 pub use line::*;

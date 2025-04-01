@@ -3,9 +3,9 @@ pub mod color;
 use std::ops::Range;
 
 use color::Color;
-use draw_commands::{Background, CloneCommand, Command, DrawShape, Image, ImageOptions, LineOptions, Render};
+use draw_commands::{Background, CloneCommand, Command, DrawShape, ImageOptions, LineOptions, Render};
 
-use crate::math::{Clip, Line, Rect, Transform2D, Transformable, Vec2};
+use crate::math::{Line, Rect, Transform2D, Transformable, Vec2};
 
 pub mod draw_commands;
 
@@ -37,7 +37,7 @@ impl View {
 
 #[derive(Debug)]
 pub struct Canvas {
-    buffer: Vec<u32>,
+    buffer: Vec<Color>,
     width: usize,
     height: usize,
 
@@ -50,7 +50,7 @@ impl Canvas {
         let clip = Rect::new(0, 0, width as i32, height as i32);
 
         Self {
-            buffer: vec![0; width * height],
+            buffer: vec![0.into(); width * height],
             width,
             height,
             view: View {
@@ -62,7 +62,49 @@ impl Canvas {
         }
     }
 
-    pub fn get_buffer(&self) -> &Vec<u32> {
+    pub fn new_buffer(width: usize, height: usize, buffer: Vec<Color>) -> Self {
+        assert_eq!(buffer.len(), width * height);
+
+        let clip = Rect::new(0, 0, width as i32, height as i32);
+
+        Self {
+            buffer,
+            width,
+            height,
+            view: View {
+                clip,
+                transform: None,
+                scaling_mode: ScalingMode::None,
+            },
+            markers: Vec::new(),
+        }
+    }
+
+    pub fn from_image_path(path: &str) -> Self {
+        let image = image::open(path).unwrap().to_rgba8();
+        let (width, height) = image.dimensions();
+
+        let buffer = image.into_raw();
+        
+        let buffer = buffer.chunks_exact(4)
+            .map(|chunk| u32::from_ne_bytes(chunk.try_into().unwrap()).into())
+            .collect();
+
+        Self::new_buffer(width as usize, height as usize, buffer)
+    }
+
+    pub fn save_image_path(&self, path: &str) {
+        let mut image = image::ImageBuffer::new(self.width as u32, self.height as u32);
+
+        // Iterate over the coordinates and pixels of the image
+        for ((x, y, pixel), source) in image.enumerate_pixels_mut().zip(self.buffer.iter()) {
+            *pixel = image::Rgb([source.r(), source.g(), source.b()]);
+        }
+
+        image.save(path).unwrap();
+    }
+
+    pub fn get_buffer(&self) -> &Vec<Color> {
         &self.buffer
     }
 
@@ -92,16 +134,16 @@ impl Canvas {
         Some(y * self.width + x)
     }
 
-    pub fn pixel(&self, x: i32, y: i32) -> Option<u32> {
+    pub fn pixel(&self, x: i32, y: i32) -> Option<Color> {
         Some(self.buffer[self.index(x, y)?])
     }
 
-    pub fn pixel_mut(&mut self, x: i32, y: i32) -> Option<&mut u32> {
+    pub fn pixel_mut(&mut self, x: i32, y: i32) -> Option<&mut Color> {
         let i = self.index(x, y)?;
         Some(&mut self.buffer[i])
     }
 
-    pub fn pixel_slice(&self, x: Range<i32>, y: i32) -> &[u32] {
+    pub fn pixel_slice(&self, x: Range<i32>, y: i32) -> &[Color] {
         let Some(x1) = self.index(x.start, y) else {
             return &[]
         };
@@ -113,7 +155,7 @@ impl Canvas {
         &self.buffer[x1..=x2]
     }
 
-    pub fn pixel_slice_mut(&mut self, x: Range<i32>, y: i32) -> &mut [u32] {
+    pub fn pixel_slice_mut(&mut self, x: Range<i32>, y: i32) -> &mut [Color] {
         let Some(x1) = self.index(x.start, y) else {
             return &mut[]
         };

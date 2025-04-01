@@ -23,9 +23,11 @@ impl Window {
     pub fn render(&mut self, canvas: &mut Canvas) {
         canvas.render_markers();
 
-        assert_eq!(canvas.get_buffer().len(), self.window.get_size().0 * self.window.get_size().1);
+        let buffer: Vec<u32> = canvas.get_buffer().into_iter().map(|color| color.as_u32()).collect();
 
-        self.window.update_with_buffer(canvas.get_buffer(), canvas.width(), canvas.height()).unwrap();
+        assert_eq!(buffer.len(), self.window.get_size().0 * self.window.get_size().1);
+
+        self.window.update_with_buffer(&buffer, canvas.width(), canvas.height()).unwrap();
     }
 
     pub fn is_key_down(&self, key: Key) -> bool {

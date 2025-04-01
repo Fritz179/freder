@@ -1,6 +1,6 @@
-use crate::{canvas::Canvas, math::{Transform2D, Transformable, Vec2}};
+use crate::{canvas::Canvas, math::{Transformable, Vec2}};
 
-use super::{CloneCommand, Command, DrawShape, Render};
+use super::{CloneCommand, Command, DrawShape};
 
 #[derive(Debug)]
 pub struct ImageOptions {
@@ -41,6 +41,7 @@ impl<'a> DrawShape for &'a Canvas {
         let mut markers = self.markers.clone();
 
         for marker in &mut markers {
+            marker.scale(options.scaling as f32);
             marker.translate(options.destination);
         }
 

@@ -1,11 +1,12 @@
 use crate::{canvas::{color::Color, Canvas}, math::{Line, Transformable, Vec2}};
 
-use super::{Command, DrawShape, Render};
+use super::{Command, DrawShape};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub struct LineOptions {
     color: Color,
     thickness: u32,
+    middle: f32,
 }
 
 impl<C: Into<Color>> From<C> for LineOptions {
@@ -13,6 +14,7 @@ impl<C: Into<Color>> From<C> for LineOptions {
         Self {
             color: from.into(),
             thickness: 1,
+            middle: 0.0
         }
     }
 }
@@ -21,6 +23,13 @@ pub trait LineOption: Into<LineOptions> {
     fn width(self, width: u32) -> LineOptions {
         let mut options = self.into();
         options.thickness = width;
+
+        options
+    }
+
+    fn middle(self) -> LineOptions {
+        let mut options = self.into();
+        options.middle = 0.5;
 
         options
     }
@@ -37,6 +46,7 @@ pub struct LineCommand {
 impl Transformable for LineCommand {
     fn scale(&mut self, factor: f32) {
         self.line.scale(factor);
+        self.options.middle *= factor;
     }
 
     fn translate(&mut self, offset: Vec2<i32>) {
@@ -56,7 +66,13 @@ impl DrawShape for Line {
 impl Command for LineCommand {
     fn render(&mut self, canvas: &mut Canvas) {
         let ((x1, y1), (x2, y2)) = self.line.to_tuple();
-    
+
+        let diff = self.options.middle as i32;
+        let x1 = x1 + diff;
+        let y1 = y1 + diff;
+        let x2 = x2 + diff;
+        let y2 = y2 + diff;
+        
         let dx = (x2 - x1).abs();
         let dy = (y2 - y1).abs();
         let sx = if x1 < x2 { 1 } else { -1 };
@@ -66,9 +82,13 @@ impl Command for LineCommand {
         let mut x = x1;
         let mut y = y1;
     
-        while x != x2 || y != y2 {
+        loop {
             if let Some(pixel) = canvas.pixel_mut(x, y) {
-                *pixel = self.options.color.as_u32();
+                *pixel = self.options.color;
+            }
+
+            if x == x2 && y == y2 {
+                break
             }
     
             let e2 = 2 * err;
