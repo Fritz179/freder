@@ -1,16 +1,16 @@
-use crate::{canvas::Canvas, math::{Transformable, Vec2}};
+use crate::{canvas::Canvas, math::{One, Transform, Transform2D, Vec2}};
 
 use super::{CloneCommand, Command, DrawShape};
 
 #[derive(Debug)]
 pub struct ImageOptions {
     destination: Vec2<i32>,
-    scaling: i32,
+    scaling: Vec2<i32>,
 }
 
 impl ImageOptions {
     pub fn scaling(mut self, scale: i32) -> Self {
-        self.scaling = scale;
+        self.scaling = Vec2::new(scale, scale);
         self
     }
 }
@@ -19,11 +19,10 @@ impl From<Vec2<i32>> for ImageOptions {
     fn from(destination: Vec2<i32>) -> Self {
         Self { 
             destination,
-            scaling: 1,
+            scaling: Vec2::one(),
         }
     }
 }
-
 
 #[derive(Debug)]
 pub struct Image<'a> {
@@ -40,9 +39,9 @@ impl<'a> DrawShape for &'a Canvas {
         let options = options.into();
         let mut markers = self.markers.clone();
 
+        let transform = Transform2D::new(options.destination, options.scaling);
         for marker in &mut markers {
-            marker.scale(options.scaling as f32);
-            marker.translate(options.destination);
+            marker.transform(&transform);
         }
 
         Image {
@@ -60,7 +59,7 @@ impl<'a> Command for Image<'a> {
         let (width, height) = self.image.size();
         let (x, y) = self.options.destination.as_tuple();
 
-        if self.options.scaling == 1 {
+        if self.options.scaling.is_one() {
             for i in 0..width as i32 {
                 for j in 0..height as i32 {
                     let Some(color) = self.image.pixel(i, j) else { continue };
@@ -77,8 +76,8 @@ impl<'a> Command for Image<'a> {
         for i in 0..width as i32 {
             for j in 0..height as i32 {
                 let Some(color) = self.image.pixel(i, j) else { continue };
-                for dy in 0..scale {
-                    canvas.pixel_slice_mut(x + i * scale..x + i * scale + scale, y + j * scale + dy).fill(color);
+                for dy in 0..*scale.y() {
+                    canvas.pixel_slice_mut(x + i * *scale.x()..x + i * *scale.x() + *scale.x(), y + j * *scale.y() + dy).fill(color);
                 }
             }
         }
@@ -86,25 +85,13 @@ impl<'a> Command for Image<'a> {
     }
 }
 
-impl<'a> Transformable for Image<'a> {
-    fn scale(&mut self, factor: f32) {
+impl<'a> Transform for Image<'a> {
+    fn transform(&mut self, transform: &dyn crate::math::Transformer<i32, 2>) {
         for marker in &mut self.markers {
-            marker.scale(factor);
+            marker.transform(transform);
         }
 
-        self.options.destination.scale(factor);
-        
-        let int = factor as i32;
-        assert_eq!(int as f32, factor, "We only support integer scaling factors");
-
-        self.options.scaling *= int;
-    }
-
-    fn translate(&mut self, offset: Vec2<i32>) {
-        for marker in &mut self.markers {
-            marker.translate(offset);
-        }
-
-        <Vec2 as Transformable>::translate(&mut self.options.destination, offset);
+        self.options.destination.transform(transform);
+        self.options.scaling.transform(transform.get_scaling_part().as_ref());
     }
 }

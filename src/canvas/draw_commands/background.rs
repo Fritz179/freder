@@ -1,4 +1,4 @@
-use crate::{canvas::{color::Color, Canvas}, math::{Transformable, Vec2}};
+use crate::{canvas::{color::Color, Canvas}, math::Transform};
 
 use super::Render;
 
@@ -23,12 +23,8 @@ impl Render for Background {
 
 }
 
-impl<T: Copy, S: Copy> Transformable<T, S> for Background {
-    fn scale(&mut self, _factor:  S) {
-        // Do nothing
-    }
-
-    fn translate(&mut self, _offset: Vec2<T>) {
+impl<T> Transform<T> for Background {
+    fn transform(&mut self, _vector: &dyn crate::math::Transformer<T, 2>) {
         // Do nothing
     }
 }

@@ -5,18 +5,9 @@ use std::ops::Range;
 use color::Color;
 use draw_commands::{Background, CloneCommand, Command, DrawShape, ImageOptions, LineOptions, Render};
 
-use crate::math::{Line, Rect, Transform2D, Transformable, Vec2};
+use crate::math::{Line, Rect, Transform, Transform2D, Vec2};
 
 pub mod draw_commands;
-
-#[derive(Debug)]
-pub enum ScalingMode {
-    // No scaling, lines remain thin
-    None,
-
-    // Nearest neighbor scaling 
-    Buffer(Box<Canvas>),
-}
 
 #[derive(Debug)]
 pub struct View {
@@ -25,8 +16,6 @@ pub struct View {
 
         // How the view is transformed
         transform: Option<Transform2D>,
-
-        scaling_mode: ScalingMode,
 }
 
 impl View {
@@ -56,7 +45,6 @@ impl Canvas {
             view: View {
                 clip,
                 transform: None,
-                scaling_mode: ScalingMode::None,
             },
             markers: Vec::new(),
         }
@@ -74,7 +62,6 @@ impl Canvas {
             view: View {
                 clip,
                 transform: None,
-                scaling_mode: ScalingMode::None,
             },
             markers: Vec::new(),
         }
@@ -97,7 +84,7 @@ impl Canvas {
         let mut image = image::ImageBuffer::new(self.width as u32, self.height as u32);
 
         // Iterate over the coordinates and pixels of the image
-        for ((x, y, pixel), source) in image.enumerate_pixels_mut().zip(self.buffer.iter()) {
+        for (pixel, source) in image.pixels_mut().zip(self.buffer.iter()) {
             *pixel = image::Rgb([source.r(), source.g(), source.b()]);
         }
 
@@ -180,8 +167,8 @@ impl Canvas {
     pub fn marker<T: DrawShape, O: Into<T::Options>>(&mut self, shape: T, options: O) where <T as DrawShape>::Command: CloneCommand + 'static {
         let mut command = shape.into_renderable(options);
 
-        if let Some(transform) = &self.view.transform {
-            command.transform(transform);
+        if let Some(transform) = self.view.transform {
+            command.transform(&transform);
         }
 
         self.markers.push(Box::new(command));
@@ -204,8 +191,8 @@ impl Canvas {
     pub fn draw<T: DrawShape, O: Into<T::Options>>(&mut self, shape: T, options: O) {
         let mut command = shape.into_renderable(options);
 
-        if let Some(transform) = &self.view.transform {
-            command.transform(transform);
+        if let Some(transform) = self.view.transform {
+            command.transform(&transform);
         }
 
         command.render(self);

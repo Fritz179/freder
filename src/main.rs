@@ -108,7 +108,7 @@ fn draw_lines(canvas: &mut Canvas) {
 
             let t = if x == 4 && y == 4 {
                 buffer.marker(Line::new(0, 0, x * 5, y * 5), RED);
-                Some(Transform2D::new(Vec2::new(-xp * 4, -yp * 4), 5.0))
+                Some(Transform2D::new(Vec2::new(-xp * 4, -yp * 4), Vec2::new(5, 5)))
             } else {
                 None
             };

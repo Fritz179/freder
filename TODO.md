@@ -13,6 +13,10 @@
 - [ ] Window
 
 
+- [ ] Refactor
+    - [ ] Transform should take a owned transform and have helper functions
+
+
 Canvas vs View 
     View can be like save_state
     But then canvas has more memory overhead?
@@ -46,3 +50,8 @@ Position corner or center of pixel?
     Scaled line marker should be in the middle, dots/cross also
     It remains in the corner for rects? 
     What if it is scaled x4? Player position is float?
+
+
+Position vs Size
+    Position easy to transform, size is special?
+    

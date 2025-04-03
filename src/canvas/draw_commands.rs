@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use crate::math::Transformable;
+use crate::math::Transform;
 
 use super::Canvas;
 
@@ -17,7 +17,7 @@ pub trait Render {
     fn render(&self, canvas: &mut Canvas);
 }
 
-pub trait Command: Transformable + Debug {
+pub trait Command: Transform + Debug {
     fn render(&mut self, canvas: &mut Canvas);
 }
 pub trait CloneCommand: Command {

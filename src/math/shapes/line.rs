@@ -1,4 +1,4 @@
-use crate::math::{Vec2, Transformable};
+use crate::math::{Transform, Transformer, Vec2};
 
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -52,21 +52,11 @@ impl<T> Line<T> {
     }
 }
 
-impl<T: Copy, S: Copy> Transformable<T, S> for Line<T> where 
-    Vec2<T>: Transformable<T, S>,
+impl<T: Copy> Transform<T, 2> for Line<T> where 
+    Vec2<T>: Transform<T, 2>,
 {
-    fn transform(&mut self, transform: &crate::math::Transform2D<T, S>) {
+    fn transform(&mut self, transform: &dyn Transformer<T, 2>) {
         self.start.transform(transform);
         self.end.transform(transform);
-    }
-
-    fn translate(&mut self, offset: Vec2<T>) {
-        self.start.translate(offset);
-        self.end.translate(offset);
-    }
-
-    fn scale(&mut self, factor: S) {
-        self.start.scale(factor);
-        self.end.scale(factor);
     }
 }

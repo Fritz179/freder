@@ -1,6 +1,6 @@
 use std::ops::Add;
 
-use crate::math::{Vec2, Transformable};
+use crate::math::{Transform, Vec2};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Rect<T = i32> {
@@ -39,20 +39,11 @@ impl<T: Copy + Add<T, Output = T>> Rect<T> {
     }
 }
 
-impl<T: Copy, S: Copy> Transformable<T, S> for Rect<T> where 
-    Vec2<T>: Transformable<T, S>
+impl<T: Copy> Transform<T, 2> for Rect<T> where 
+    Vec2<T>: Transform<T, 2>
 {
-    fn transform(&mut self, transform: &crate::math::Transform2D<T, S>) {
+    fn transform(&mut self, transform: &dyn crate::math::Transformer<T, 2>) {
         self.position.transform(transform);
-        self.size.scale(*transform.get_scaling());
-    }
-
-    fn translate(&mut self, offset: Vec2<T>) {
-        self.position.translate(offset);
-    }
-
-    fn scale(&mut self, factor: S) {
-        self.position.scale(factor);
-        self.size.scale(factor);
+        self.size.transform(transform.get_scaling_part().as_ref());
     }
 }
