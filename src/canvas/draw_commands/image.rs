@@ -92,6 +92,6 @@ impl<'a> Transform for Image<'a> {
         }
 
         self.options.destination.transform(transform);
-        self.options.scaling.transform(transform.get_scaling_part().as_ref());
+        self.options.scaling.transform(&Transform2D::new_scaling(transform.scaling()));
     }
 }

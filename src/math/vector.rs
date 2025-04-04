@@ -1,4 +1,4 @@
-use std::{fmt::Debug, mem::MaybeUninit, ops::{Mul, MulAssign}};
+use std::{fmt::Debug, mem::MaybeUninit, ops::{AddAssign, Mul, MulAssign}};
 
 use super::{One, Transform, Transformer, Zero};
 
@@ -217,7 +217,10 @@ vector_float_mul_impl!(i64, f64, to_f64, from_f64);
 
 use num_traits::{FromPrimitive, ToPrimitive};
 
-impl<T: Copy, const N: usize> Transform<T, N> for Vector<T, N> {
+impl<T: Copy, const N: usize> Transform<T, N> for Vector<T, N>  where
+Vec2<T>: AddAssign<Vec2<T>>,
+Vec2<T>: MulAssign<Vec2<T>> 
+{
     fn transform(&mut self, transform: &dyn Transformer<T, N>) {
         transform.transform_vec(self);
     }

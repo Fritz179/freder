@@ -1,4 +1,4 @@
-use crate::{canvas::{color::Color, Canvas}, math::{Line, One, Transform, Vec2, Zero}};
+use crate::{canvas::{color::Color, Canvas}, math::{Line, One, Transform, Transform2D, Vec2, Zero}};
 
 use super::{Command, DrawShape};
 
@@ -37,7 +37,7 @@ pub struct LineCommand {
 impl Transform for LineCommand {
     fn transform(&mut self, transform: &dyn crate::math::Transformer<i32, 2>) {
         self.line.transform(transform);
-        self.options.pixel_size.transform(transform.get_scaling_part().as_ref());
+        self.options.pixel_size.transform(&Transform2D::new_scaling(transform.scaling()));
     }
 }
 

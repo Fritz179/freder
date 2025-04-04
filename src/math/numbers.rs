@@ -1,3 +1,67 @@
+// Number:
+//   - Float 
+//     - f32
+//     - f64
+//   - Integer
+//     - Signed
+//       - i8...
+//     - Unsigned
+//       - u8...
+
+trait Number: 
+    Sized + 
+    Copy {}
+
+trait Float: Number {}
+
+trait Integer: Number {}
+
+trait Signed: Integer {}
+trait Unsigned: Integer {}
+
+macro_rules! do_unsigned_impl {
+    ($m:tt, $($val:expr), *) => {
+        $m!(usize, $($val), *);
+        $m!(u8, $($val), *);
+        $m!(u16, $($val), *);
+        $m!(u32, $($val), *);
+        $m!(u64, $($val), *);
+        $m!(u128, $($val), *);
+    };
+}
+
+macro_rules! do_signed_impl {
+    ($m:tt, $($val:expr), *) => {
+        $m!(isize, $($val), *);
+        $m!(i8, $($val), *);
+        $m!(i16, $($val), *);
+        $m!(i32, $($val), *);
+        $m!(i64, $($val), *);
+        $m!(i128, $($val), *);
+    };
+}
+
+macro_rules! do_integer_impl {
+    ($m:tt, $($val:expr), *) => {
+        do_signed_impl!($m, $($val), *);
+        do_unsigned_impl!($m, $($val), *);
+    };
+}
+
+macro_rules! do_float_impl {
+    ($m:tt, $($val:expr), *) => {
+        $m!(f32, $($val), *);
+        $m!(f64, $($val), *);
+    };
+}
+
+macro_rules! do_number_impl {
+    ($m:tt, $($val:expr), *) => {
+        do_integer_impl!($m, $($val), *);
+        do_float_impl!($m, $($val), *);
+    };
+}
+
 pub trait Zero {
     const ZERO: Self;
 
@@ -27,22 +91,8 @@ macro_rules! zero_impl {
     };
 }
 
-zero_impl!(usize, 0);
-zero_impl!(u8, 0);
-zero_impl!(u16, 0);
-zero_impl!(u32, 0);
-zero_impl!(u64, 0);
-zero_impl!(u128, 0);
-
-zero_impl!(isize, 0);
-zero_impl!(i8, 0);
-zero_impl!(i16, 0);
-zero_impl!(i32, 0);
-zero_impl!(i64, 0);
-zero_impl!(i128, 0);
-
-zero_impl!(f32, 0.0);
-zero_impl!(f64, 0.0);
+do_integer_impl!(zero_impl, 0);
+do_float_impl!(zero_impl, 0.0);
 
 pub trait One {
     const ONE: Self;
@@ -73,19 +123,5 @@ macro_rules! one_impl {
     };
 }
 
-one_impl!(usize, 1);
-one_impl!(u8, 1);
-one_impl!(u16, 1);
-one_impl!(u32, 1);
-one_impl!(u64, 1);
-one_impl!(u128, 1);
-
-one_impl!(isize, 1);
-one_impl!(i8, 1);
-one_impl!(i16, 1);
-one_impl!(i32, 1);
-one_impl!(i64, 1);
-one_impl!(i128, 1);
-
-one_impl!(f32, 1.0);
-one_impl!(f64, 1.0);
+do_integer_impl!(one_impl, 1);
+do_float_impl!(one_impl, 1.0);

@@ -23,6 +23,7 @@ impl Window {
     pub fn render(&mut self, canvas: &mut Canvas) {
         canvas.render_markers();
 
+        // TODO: Do it better
         let buffer: Vec<u32> = canvas.get_buffer().into_iter().map(|color| color.as_u32()).collect();
 
         assert_eq!(buffer.len(), self.window.get_size().0 * self.window.get_size().1);

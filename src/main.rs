@@ -8,8 +8,11 @@ use window::Window;
 mod canvas;
 use canvas::{color::*, draw_commands::LineOption, Canvas};
 
-const WIDTH: usize = 640;
-const HEIGHT: usize = 480;
+// const WIDTH: usize = 640;
+// const HEIGHT: usize = 480;
+
+const WIDTH: usize = 1280;
+const HEIGHT: usize = 720;
 
 fn main() {
     let (mut window, mut canvas) = Window::new("Test", WIDTH, HEIGHT).unwrap();
@@ -32,6 +35,51 @@ fn main() {
     }
 }
 
+fn circle_midpoint(canvas: &mut Canvas, center: Vec2, radius: i32) {
+    let (cx, cy) = center.to_tuple();
+    let mut x = 0;
+    let mut y = radius;
+
+    // Decision parameter.
+    let mut p = 1 - radius;
+    let color = RED;
+
+    // Iterate through the first octant.
+    while x <= y {
+        
+        // Each computed (x,y) produces eight symmetrical points:
+        *canvas.pixel_mut(cx + x, cy + y).unwrap() = color;
+        *canvas.pixel_mut(cx - x, cy + y).unwrap() = color;
+        *canvas.pixel_mut(cx + x, cy - y).unwrap() = color;
+        *canvas.pixel_mut(cx - x, cy - y).unwrap() = color;
+        *canvas.pixel_mut(cx + y, cy + x).unwrap() = color;
+        *canvas.pixel_mut(cx - y, cy + x).unwrap() = color;
+        *canvas.pixel_mut(cx + y, cy - x).unwrap() = color;
+        *canvas.pixel_mut(cx - y, cy - x).unwrap() = color;
+
+        // Update decision parameter and coordinates.
+        if p < 0 {
+            p += 2 * x + 3;
+        } else {
+            p += 2 * (x - y) + 5;
+            y -= 1;
+        }
+        x += 1;
+    }
+}
+
+fn fill_10x(canvas: &mut Canvas, w: i32, h: i32) {
+    circle_midpoint(canvas, Vec2::new(5, 20), 5);
+
+    let line = Line::new(1, 1, w - 2, h - 2);
+    canvas.draw(line, WHITE);
+    canvas.marker(line, RED.middle());
+
+    let line = Line::new(1, h - 2, w - 2, 1);
+    canvas.draw(line, WHITE);
+    canvas.marker(line, RED.middle());
+}
+
 fn draw_x10(canvas: &mut Canvas) {
     canvas.background(0);
 
@@ -43,13 +91,7 @@ fn draw_x10(canvas: &mut Canvas) {
     let mut buffer = Canvas::new(W, H);
     buffer.background(0);
 
-    let line = Line::new(1, 1, 30, 22);
-    buffer.draw(line, WHITE);
-    buffer.marker(line, RED.middle());
-
-    let line = Line::new(1, 22, 30, 1);
-    buffer.draw(line, WHITE);
-    buffer.marker(line, RED.middle());
+    fill_10x(&mut buffer, W as i32, H as i32);
 
     canvas.image(&buffer, 0, 0, SCALE as i32);
 

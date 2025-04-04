@@ -4,11 +4,13 @@ use super::{vector::Vector, One, Vec2, Zero};
 
 
 pub trait Transformer<T = i32, const N: usize = 2> {    
-    fn transform_vec(&self, vector: &mut Vector<T, N>);
+    fn transform_vec(&self, vector: &mut Vector<T, N>) where
+    Vec2<T>: AddAssign<Vec2<T>>,
+    Vec2<T>: MulAssign<Vec2<T>>;
 
     // Clone on the heap? Transformer is never sized...
-    fn get_scaling_part(&self) -> Box<dyn Transformer<T, N>>;
-    fn get_translating_part(&self) -> Box<dyn Transformer<T, N>>;
+    fn scaling(&self) -> Vec2<T>;
+    fn translation(&self) -> Vec2<T>;
 
     fn is_axis_aligned(&self) -> bool;
 }
@@ -23,9 +25,17 @@ pub struct Transform2D<T = i32>{
     translation: Vec2<T>,
 }
 
-impl<T: Copy> Transform2D<T> {
+impl<T: Copy + Zero + One> Transform2D<T> {
     pub fn new(translation: Vec2<T>, scaling: Vec2<T>) -> Self {
         Self { translation, scaling }
+    }
+
+    pub fn new_scaling(scaling: Vec2<T>) -> Self {
+        Self { translation: Default::default(), scaling }
+    }
+
+    pub fn new_translation(translation: Vec2<T>) -> Self {
+        Self { translation, scaling: Default::default() }
     }
 
     pub fn translation(self) -> Vec2<T> {
@@ -43,10 +53,7 @@ impl<T: Copy> Transform2D<T> {
     pub fn scaling_mut(&mut self) -> &mut Vec2<T> {
         &mut self.scaling
     }
-}
 
-
-impl<T: Zero + One> Transform2D<T> {
     pub fn identity() -> Self {
         Self {
             translation: Vec2::zero(),
@@ -55,27 +62,27 @@ impl<T: Zero + One> Transform2D<T> {
     }
 }
 
-impl<T: Zero + One> Default for Transform2D<T> {
+impl<T: Copy + Zero + One> Default for Transform2D<T> {
     fn default() -> Self {
         Self::identity()
     }
 }
 
-impl<T: Copy + One + Zero + 'static> Transformer<T> for Transform2D<T> where
-    Vec2<T>: AddAssign<Vec2<T>>,
-    Vec2<T>: MulAssign<Vec2<T>>
-{
-    fn transform_vec(&self, vector: &mut Vec2<T>) {
+impl<T: Copy + One + Zero + 'static> Transformer<T> for Transform2D<T> {
+    fn transform_vec(&self, vector: &mut Vec2<T>) where
+        Vec2<T>: AddAssign<Vec2<T>>,
+        Vec2<T>: MulAssign<Vec2<T>> 
+    {
         *vector *= self.scaling;
         *vector += self.translation;
     }
 
-    fn get_scaling_part(&self) -> Box<dyn Transformer<T, 2>> {
-        Box::new(Self::new(Vec2::zero(), self.scaling))
+    fn scaling(&self) -> Vec2<T> {
+        self.scaling
     }
 
-    fn get_translating_part(&self) -> Box<dyn Transformer<T, 2>> {
-        Box::new(Self::new(self.translation, Vec2::one()))
+    fn translation(&self) -> Vec2<T> {
+        self.translation
     }
 
     fn is_axis_aligned(&self) -> bool {
