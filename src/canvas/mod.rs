@@ -1,13 +1,15 @@
-pub mod color;
-
 use std::ops::Range;
 
-use color::Color;
-use draw_commands::{Background, CloneCommand, Command, DrawShape, ImageOptions, LineOptions, Render};
+use draw_commands::{background::{Background, BackgroundOptions}, image::ImageOptions, line::LineOptions, CloneCommand, Command, DrawShape};
 
-use crate::math::{Line, Rect, Transform, Transform2D, Vec2};
+use crate::prelude::*;
 
+pub mod color;
 pub mod draw_commands;
+
+pub trait Render {
+    fn render(&self, canvas: &mut Canvas);
+}
 
 #[derive(Debug)]
 pub struct View {
@@ -31,7 +33,7 @@ pub struct Canvas {
     height: usize,
 
     view: View,
-    pub markers: Vec<Box<dyn CloneCommand>>,
+    markers: Vec<Box<dyn CloneCommand>>,
 }
 
 impl Canvas {
@@ -198,8 +200,8 @@ impl Canvas {
         command.render(self);
     }
 
-    pub fn background(&mut self, color: impl Into<Color>) {
-        self.render(&mut Background::new(color));
+    pub fn background(&mut self, color: impl Into<BackgroundOptions>) {
+        self.draw(Background, color);
     }
 
     pub fn line<O: Into<LineOptions>>(&mut self, x1: i32, y1: i32, x2: i32, y2: i32, options: O) {

@@ -1,6 +1,4 @@
-use std::ops::Add;
-
-use crate::math::{One, Transform, Transform2D, Vec2, Zero};
+use crate::prelude::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Rect<T = i32> {
@@ -21,7 +19,7 @@ impl<T> Rect<T> {
     }
 }
 
-impl<T: Copy + Add<T, Output = T>> Rect<T> {
+impl<T: Number> Rect<T> {
     pub fn x1(&self) -> T {
         *self.position.x()
     }
@@ -39,10 +37,8 @@ impl<T: Copy + Add<T, Output = T>> Rect<T> {
     }
 }
 
-impl<T: Copy + Zero + One + 'static> Transform<T, 2> for Rect<T> where 
-    Vec2<T>: Transform<T, 2>
-{
-    fn transform(&mut self, transform: &dyn crate::math::Transformer<T, 2>) {
+impl<T: Number> Transform<T, 2> for Rect<T> {
+    fn transform(&mut self, transform: &dyn Transformer<T, 2>) {
         self.position.transform(transform);
         self.size.transform(&Transform2D::new_scaling(transform.scaling()));
     }

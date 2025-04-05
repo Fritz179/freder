@@ -1,15 +1,8 @@
-mod line;
-pub use line::Line;
+use crate::prelude::*;
 
-mod rect;
-pub use rect::Rect;
-
-mod triangle;
-pub use triangle::Triangle;
-
-
-// Overlaps = 
-// Encloses =
+pub mod line;
+pub mod rect;
+pub mod triangle;
 
 pub trait Overlaps {
     fn overlaps(&self, other: &dyn Overlaps) -> bool;

@@ -1,30 +1,36 @@
-use crate::{canvas::{color::Color, Canvas}, math::Transform};
+use crate::prelude::*;
 
-use super::Render;
+use super::{Command, DrawShape};
 
-type BackgroundOptions = Color;
 
-pub struct Background(BackgroundOptions);
+pub type BackgroundOptions = Color;
 
-impl Background {
-    pub fn new(color: impl Into<Color>) -> Self {
-        Self(color.into())
+pub struct Background;
+
+#[derive(Debug, Clone, Copy)]
+pub struct BackgroundCommand(BackgroundOptions);
+
+impl DrawShape for Background {
+    type Command = BackgroundCommand;
+    type Options = BackgroundOptions;
+
+    fn into_renderable(self, options: impl Into<Self::Options>) -> Self::Command {
+        BackgroundCommand(options.into())
     }
 }
 
-impl Render for Background {
-    fn render(&self, canvas: &mut Canvas) {
+impl Command for BackgroundCommand {
+    fn render(&mut self, canvas: &mut Canvas) {
         let rect = canvas.view.clip;
 
         for y in rect.y1()..rect.y2() {
             canvas.pixel_slice_mut(rect.x1()..rect.x2(), y).fill(self.0);
         }
     }
-
 }
 
-impl<T> Transform<T> for Background {
-    fn transform(&mut self, _vector: &dyn crate::math::Transformer<T, 2>) {
+impl<T> Transform<T> for BackgroundCommand {
+    fn transform(&mut self, _vector: &dyn Transformer<T, 2>) {
         // Do nothing
     }
 }

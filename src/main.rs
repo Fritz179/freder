@@ -1,12 +1,9 @@
-mod math;
+pub mod math;
+pub mod window;
+pub mod canvas;
 
-mod window;
-use math::{Line, Transform2D, Vec2};
-use minifb::Key;
-use window::Window;
-
-mod canvas;
-use canvas::{color::*, draw_commands::LineOption, Canvas};
+pub mod prelude;
+use prelude::*;
 
 // const WIDTH: usize = 640;
 // const HEIGHT: usize = 480;
@@ -46,7 +43,7 @@ fn circle_midpoint(canvas: &mut Canvas, center: Vec2, radius: i32) {
 
     // Iterate through the first octant.
     while x <= y {
-        
+
         // Each computed (x,y) produces eight symmetrical points:
         *canvas.pixel_mut(cx + x, cy + y).unwrap() = color;
         *canvas.pixel_mut(cx - x, cy + y).unwrap() = color;

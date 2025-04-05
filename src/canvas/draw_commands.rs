@@ -1,21 +1,9 @@
+pub mod line;
+pub mod background;
+pub mod image;
+
+use crate::prelude::*;
 use std::fmt::Debug;
-
-use crate::math::Transform;
-
-use super::Canvas;
-
-mod line;
-pub use line::*;
-
-mod background;
-pub use background::*;
-
-mod image;
-pub use image::*;
-
-pub trait Render {
-    fn render(&self, canvas: &mut Canvas);
-}
 
 pub trait Command: Transform + Debug {
     fn render(&mut self, canvas: &mut Canvas);

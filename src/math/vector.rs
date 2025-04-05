@@ -1,6 +1,5 @@
-use std::{fmt::Debug, mem::MaybeUninit, ops::{AddAssign, Mul, MulAssign}};
-
-use super::{One, Transform, Transformer, Zero};
+use crate::prelude::*;
+use std::mem::MaybeUninit;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Vector<T, const N: usize>([T; N]);
@@ -172,55 +171,52 @@ vector_binary_op_impl!(Mul, mul, *, MulAssign, mul_assign, *=);
 
 // TODO: Implement more operations
 
-macro_rules! vector_float_mul_impl {
-    ($Lhs:ty, $Rhs:ty, $to:tt, $from:tt) => {
-        impl<const N: usize> Mul<$Rhs> for Vector<$Lhs, N> {
-            type Output = Self;
+// macro_rules! vector_float_mul_impl {
+//     ($Lhs:ty, $Rhs:ty, $to:tt, $from:tt) => {
+//         impl<const N: usize> Mul<$Rhs> for Vector<$Lhs, N> {
+//             type Output = Self;
 
-            fn mul(self, factor: $Rhs) -> Self::Output {
-                let mut temp: [MaybeUninit<$Lhs>; N] = [const { MaybeUninit::uninit() }; N];
+//             fn mul(self, factor: $Rhs) -> Self::Output {
+//                 let mut temp: [MaybeUninit<$Lhs>; N] = [const { MaybeUninit::uninit() }; N];
 
-                for (t, a) in temp.iter_mut().zip(self.0.into_iter()) {
-                    t.write(<$Lhs>::$from(a.$to().expect("Conversion failed") * factor).expect("Conversion failed"));
-                }
+//                 for (t, a) in temp.iter_mut().zip(self.0.into_iter()) {
+//                     t.write(<$Lhs>::$from(a.$to().expect("Conversion failed") * factor).expect("Conversion failed"));
+//                 }
 
-                // let arr = unsafe { MaybeUninit::array_assume_init(temp) };
-                let arr = unsafe { std::mem::transmute_copy(&temp) };
-                Vector(arr)
-            }
-        }
+//                 // let arr = unsafe { MaybeUninit::array_assume_init(temp) };
+//                 let arr = unsafe { std::mem::transmute_copy(&temp) };
+//                 Vector(arr)
+//             }
+//         }
 
-        // Vec * f
-        impl MulAssign<$Rhs> for Vec2<$Lhs> {
-            fn mul_assign(&mut self, factor: $Rhs) {
-                // self.0[0] *_assign $Rhs.x;
-                // self.0[1] *_assign $Rhs.y;
-                for a in self.0.iter_mut() {
-                    *a = <$Lhs>::$from(a.$to().expect("Conversion failed") * factor).expect("Conversion failed");
-                }
-            }
-        }
+//         // Vec * f
+//         impl MulAssign<$Rhs> for Vec2<$Lhs> {
+//             fn mul_assign(&mut self, factor: $Rhs) {
+//                 // self.0[0] *_assign $Rhs.x;
+//                 // self.0[1] *_assign $Rhs.y;
+//                 for a in self.0.iter_mut() {
+//                     *a = <$Lhs>::$from(a.$to().expect("Conversion failed") * factor).expect("Conversion failed");
+//                 }
+//             }
+//         }
 
-        // Vec * &f
-        impl MulAssign<&$Rhs> for Vec2<$Lhs> {
-            fn mul_assign(&mut self, factor: &$Rhs) {
-                for a in self.0.iter_mut() {
-                    *a = <$Lhs>::$from(a.$to().expect("Conversion failed") * factor).expect("Conversion failed");
-                }
-            }
-        }
-    };
-}
+//         // Vec * &f
+//         impl MulAssign<&$Rhs> for Vec2<$Lhs> {
+//             fn mul_assign(&mut self, factor: &$Rhs) {
+//                 for a in self.0.iter_mut() {
+//                     *a = <$Lhs>::$from(a.$to().expect("Conversion failed") * factor).expect("Conversion failed");
+//                 }
+//             }
+//         }
+//     };
+// }
 
-vector_float_mul_impl!(i32, f32, to_f32, from_f32);
-vector_float_mul_impl!(i64, f64, to_f64, from_f64);
+// vector_float_mul_impl!(i32, f32, to_f32, from_f32);
+// vector_float_mul_impl!(i64, f64, to_f64, from_f64);
 
-use num_traits::{FromPrimitive, ToPrimitive};
+// use num_traits::{FromPrimitive, ToPrimitive};
 
-impl<T: Copy, const N: usize> Transform<T, N> for Vector<T, N>  where
-Vec2<T>: AddAssign<Vec2<T>>,
-Vec2<T>: MulAssign<Vec2<T>> 
-{
+impl<T: Number, const N: usize> Transform<T, N> for Vector<T, N> {
     fn transform(&mut self, transform: &dyn Transformer<T, N>) {
         transform.transform_vec(self);
     }

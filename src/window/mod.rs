@@ -1,6 +1,5 @@
 pub use minifb::Key;
-
-use crate::canvas::Canvas;
+use crate::prelude::*;
 
 pub struct Window {
     window: minifb::Window,

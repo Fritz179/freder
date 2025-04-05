@@ -1,14 +1,10 @@
-use std::ops::{AddAssign, MulAssign};
+use crate::prelude::*;
 
-use super::{vector::Vector, One, Vec2, Zero};
+use super::vector::Vector;
 
+pub trait Transformer<T: Number = i32, const N: usize = 2> {    
+    fn transform_vec(&self, vector: &mut Vector<T, N>);
 
-pub trait Transformer<T = i32, const N: usize = 2> {    
-    fn transform_vec(&self, vector: &mut Vector<T, N>) where
-    Vec2<T>: AddAssign<Vec2<T>>,
-    Vec2<T>: MulAssign<Vec2<T>>;
-
-    // Clone on the heap? Transformer is never sized...
     fn scaling(&self) -> Vec2<T>;
     fn translation(&self) -> Vec2<T>;
 
@@ -25,7 +21,7 @@ pub struct Transform2D<T = i32>{
     translation: Vec2<T>,
 }
 
-impl<T: Copy + Zero + One> Transform2D<T> {
+impl<T: Number> Transform2D<T> {
     pub fn new(translation: Vec2<T>, scaling: Vec2<T>) -> Self {
         Self { translation, scaling }
     }
@@ -62,17 +58,14 @@ impl<T: Copy + Zero + One> Transform2D<T> {
     }
 }
 
-impl<T: Copy + Zero + One> Default for Transform2D<T> {
+impl<T: Number> Default for Transform2D<T> {
     fn default() -> Self {
         Self::identity()
     }
 }
 
-impl<T: Copy + One + Zero + 'static> Transformer<T> for Transform2D<T> {
-    fn transform_vec(&self, vector: &mut Vec2<T>) where
-        Vec2<T>: AddAssign<Vec2<T>>,
-        Vec2<T>: MulAssign<Vec2<T>> 
-    {
+impl<T: Number> Transformer<T> for Transform2D<T> {
+    fn transform_vec(&self, vector: &mut Vec2<T>) {
         *vector *= self.scaling;
         *vector += self.translation;
     }

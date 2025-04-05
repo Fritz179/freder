@@ -1,4 +1,4 @@
-use crate::{canvas::Canvas, math::{One, Transform, Transform2D, Vec2}};
+use crate::prelude::*;
 
 use super::{CloneCommand, Command, DrawShape};
 
@@ -86,7 +86,7 @@ impl<'a> Command for Image<'a> {
 }
 
 impl<'a> Transform for Image<'a> {
-    fn transform(&mut self, transform: &dyn crate::math::Transformer<i32, 2>) {
+    fn transform(&mut self, transform: &dyn Transformer<i32, 2>) {
         for marker in &mut self.markers {
             marker.transform(transform);
         }
