@@ -5,8 +5,8 @@ use super::vector::Vector;
 pub trait Transformer<T: Number = i32, const N: usize = 2> {    
     fn transform_vec(&self, vector: &mut Vector<T, N>);
 
-    fn scaling(&self) -> Vec2<T>;
-    fn translation(&self) -> Vec2<T>;
+    fn scaling(&self) -> Vector<T, N>;
+    fn translation(&self) -> Vector<T, N>;
 
     fn is_axis_aligned(&self) -> bool;
 }

@@ -7,7 +7,7 @@
     - [ ] Add `View`
         - [ ] Define scaling options
             - [ ] With buffer or direct?
-            - [ ] 
+            - [ ] Define option vs options trait for shapes
     - [ ] Add `Colors`
 
 - [ ] Window

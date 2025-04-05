@@ -144,6 +144,7 @@ macro_rules! zero_impl {
             fn zero() -> $t {
                 $v
             }
+
             #[inline]
             fn is_zero(&self) -> bool {
                 *self == $v
@@ -176,6 +177,7 @@ macro_rules! one_impl {
             fn one() -> $t {
                 $v
             }
+
             #[inline]
             fn is_one(&self) -> bool {
                 *self == $v

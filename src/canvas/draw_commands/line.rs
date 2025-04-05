@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-use super::{Command, DrawShape};
+use super::{Command, DrawCommand};
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub struct LineOptions {
@@ -41,7 +41,7 @@ impl Transform for LineCommand {
     }
 }
 
-impl DrawShape for Line {
+impl DrawCommand for Line {
     type Options = LineOptions;
     type Command = LineCommand;
 

@@ -1,8 +1,12 @@
 use crate::prelude::*;
 
+pub mod point;
 pub mod line;
 pub mod rect;
+pub mod circle;
 pub mod triangle;
+
+// TODO: Ellipse?
 
 pub trait Overlaps {
     fn overlaps(&self, other: &dyn Overlaps) -> bool;
@@ -23,9 +27,7 @@ pub trait Clip {
 }
 
 impl Clip for Line {
-    fn clip_rect(self, rect: &Rect) -> Option<Self> {
-        // TODO: Implement clipping
-
-        Some(self)
+    fn clip_rect(self, _rect: &Rect) -> Option<Self> {
+        unimplemented!()
     }
 }

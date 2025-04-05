@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-use super::{Command, DrawShape};
+use super::{Command, DrawCommand};
 
 
 pub type BackgroundOptions = Color;
@@ -10,7 +10,7 @@ pub struct Background;
 #[derive(Debug, Clone, Copy)]
 pub struct BackgroundCommand(BackgroundOptions);
 
-impl DrawShape for Background {
+impl DrawCommand for Background {
     type Command = BackgroundCommand;
     type Options = BackgroundOptions;
 

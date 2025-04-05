@@ -1,6 +1,7 @@
 pub mod line;
 pub mod background;
 pub mod image;
+pub mod circle;
 
 use crate::prelude::*;
 use std::fmt::Debug;
@@ -24,7 +25,7 @@ impl Clone for Box<dyn CloneCommand> {
     }
 }
 
-pub trait DrawShape {
+pub trait DrawCommand {
     type Options;
     type Command: Command;
 

@@ -33,4 +33,12 @@ impl Window {
     pub fn is_key_down(&self, key: Key) -> bool {
         self.window.is_key_down(key)
     }
+
+    pub fn get_mouse_pos(&self) -> Option<Vec2<i32>> {
+        self.window.get_mouse_pos(minifb::MouseMode::Pass).map(|(x, y)| Vec2::new(x as i32, y as i32))
+    }
+
+    pub fn is_mouse_down(&self) -> bool {
+        self.window.get_mouse_down(minifb::MouseButton::Left)
+    }
 }

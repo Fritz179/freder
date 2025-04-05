@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-use super::{CloneCommand, Command, DrawShape};
+use super::{CloneCommand, Command, DrawCommand};
 
 #[derive(Debug)]
 pub struct ImageOptions {
@@ -31,7 +31,7 @@ pub struct Image<'a> {
     markers: Vec<Box<dyn CloneCommand>>,
 }
 
-impl<'a> DrawShape for &'a Canvas {
+impl<'a> DrawCommand for &'a Canvas {
     type Options = ImageOptions;
     type Command = Image<'a>;
 

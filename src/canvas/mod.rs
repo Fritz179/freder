@@ -1,6 +1,6 @@
 use std::ops::Range;
 
-use draw_commands::{background::{Background, BackgroundOptions}, image::ImageOptions, line::LineOptions, CloneCommand, Command, DrawShape};
+use draw_commands::{background::{Background, BackgroundOptions}, image::ImageOptions, line::LineOptions, CloneCommand, Command, DrawCommand};
 
 use crate::prelude::*;
 
@@ -162,11 +162,11 @@ impl Canvas {
 }
 
 impl Canvas {
-    fn render(&mut self, instance: &dyn Render) {
+    pub fn render(&mut self, instance: &dyn Render) {
         instance.render(self);
     }
 
-    pub fn marker<T: DrawShape, O: Into<T::Options>>(&mut self, shape: T, options: O) where <T as DrawShape>::Command: CloneCommand + 'static {
+    pub fn marker<T: DrawCommand, O: Into<T::Options>>(&mut self, shape: T, options: O) where <T as DrawCommand>::Command: CloneCommand + 'static {
         let mut command = shape.into_renderable(options);
 
         if let Some(transform) = self.view.transform {
@@ -190,7 +190,7 @@ impl Canvas {
         self.clear_markers();
     }
 
-    pub fn draw<T: DrawShape, O: Into<T::Options>>(&mut self, shape: T, options: O) {
+    pub fn draw<T: DrawCommand, O: Into<T::Options>>(&mut self, shape: T, options: O) {
         let mut command = shape.into_renderable(options);
 
         if let Some(transform) = self.view.transform {
@@ -210,5 +210,9 @@ impl Canvas {
 
     pub fn image(&mut self, image: &Canvas, x: i32, y: i32, scale: i32) {
         self.draw(image, <Vec2 as Into<ImageOptions>>::into(Vec2::new(x, y)).scaling(scale));
+    }
+
+    pub fn circle<O: Into<CircleOptions>>(&mut self, x: i32, y: i32, radius: i32, options: O) {
+        self.draw(Circle::new(x, y, radius), options);
     }
 }
