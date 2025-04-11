@@ -1,44 +1,117 @@
-pub use minifb::Key;
 use crate::prelude::*;
 
-pub struct Window {
-    window: minifb::Window,
+pub mod event;
+pub mod minifb;
+
+use event::*;
+
+pub struct Frender {
+
 }
 
-impl Window {
-    pub fn new(title: &str, width: usize, height: usize) -> Result<(Self, Canvas), minifb::Error> {
-        let mut window = minifb::Window::new(title, width, height, minifb::WindowOptions::default())?;
-        // Limit to max ~60 fps update rate
-        window.set_target_fps(60);
+impl Frender {
+    pub fn new(title: &str, width: usize, height: usize, mut app: impl App) {
+        let (mut window, mut canvas) = Window::new(title, width, height).unwrap();
+        while window.is_open() {
 
-        let canvas = Canvas::new(width, height);
-        Ok((Self { window }, canvas))
+            app.update(&mut window);
+
+            app.render(&mut window, &mut canvas);
+
+            window.render(&mut canvas);
+
+        }
+    }
+}
+
+
+pub trait WindowTrait {
+    fn new(title: &str, width: usize, height: usize) -> Self where Self: Sized;
+    
+    fn is_open(&self) -> bool;
+
+    fn mouse_just_pressed(&self) -> bool;
+    fn mouse_just_released(&self) -> bool;
+    fn mouse_is_pressed(&self) -> bool;
+    fn mouse_pos(&self) -> Option<Vec2<i32>>;
+
+    fn key_just_pressed(&self, key: Key) -> bool;
+    fn key_just_released(&self, key: Key) -> bool;
+    fn key_is_pressed(&self, key: Key) -> bool;
+}
+
+pub trait App {
+    fn event(&mut self, _window: &mut Window, _event: Event) {}
+    fn update(&mut self, _window: &mut Window) {}
+    fn render(&mut self, window: &mut Window, canvas: &mut Canvas);
+}
+
+struct MouseManager {
+    current:[bool; std::mem::variant_count::<MouseButton>()],
+    previous: [bool; std::mem::variant_count::<MouseButton>()],
+    position: Vec2<i32>,
+}
+
+impl MouseManager {
+    fn new() -> Self {
+        Self {
+            current: [false; std::mem::variant_count::<MouseButton>()],
+            previous: [false; std::mem::variant_count::<MouseButton>()],
+            position: Vec2::new(0, 0),
+        }
     }
 
-    pub fn is_open(&self) -> bool {
-        self.window.is_open() && !self.window.is_key_down(Key::Q)
+    fn update(&mut self) {
+        self.previous.copy_from_slice(&self.current);
     }
 
-    pub fn render(&mut self, canvas: &mut Canvas) {
-        canvas.render_markers();
-
-        // TODO: Do it better
-        let buffer: Vec<u32> = canvas.get_buffer().into_iter().map(|color| color.as_u32()).collect();
-
-        assert_eq!(buffer.len(), self.window.get_size().0 * self.window.get_size().1);
-
-        self.window.update_with_buffer(&buffer, canvas.width(), canvas.height()).unwrap();
+    fn set(&mut self, button: MouseButton, pressed: bool) {
+        self.current[button as usize] = pressed;
     }
 
-    pub fn is_key_down(&self, key: Key) -> bool {
-        self.window.is_key_down(key)
+    fn is_pressed(&self, button: MouseButton) -> bool {
+        self.current[button as usize]
     }
 
-    pub fn get_mouse_pos(&self) -> Option<Vec2<i32>> {
-        self.window.get_mouse_pos(minifb::MouseMode::Pass).map(|(x, y)| Vec2::new(x as i32, y as i32))
+    fn just_pressed(&self, button: MouseButton) -> bool {
+        self.current[button as usize] && !self.previous[button as usize]
     }
 
-    pub fn is_mouse_down(&self) -> bool {
-        self.window.get_mouse_down(minifb::MouseButton::Left)
+    fn just_released(&self, button: MouseButton) -> bool {
+        !self.current[button as usize] && self.previous[button as usize]
+    }
+}
+
+struct KeyboardManager {
+    current: [bool; std::mem::variant_count::<Key>()],
+    previous: [bool; std::mem::variant_count::<Key>()],
+}
+
+impl KeyboardManager {
+    fn new() -> Self {
+        Self {
+            current: [false; std::mem::variant_count::<Key>()],
+            previous: [false; std::mem::variant_count::<Key>()],
+        }
+    }
+
+    fn update(&mut self) {
+        self.previous.copy_from_slice(&self.current);
+    }
+
+    fn set(&mut self, key: Key, pressed: bool) {
+        self.current[key as usize] = pressed;
+    }
+
+    fn is_pressed(&self, key: Key) -> bool {
+        self.current[key as usize]
+    }
+
+    fn just_pressed(&self, key: Key) -> bool {
+        self.current[key as usize] && !self.previous[key as usize]
+    }
+
+    fn just_released(&self, key: Key) -> bool {
+        !self.current[key as usize] && self.previous[key as usize]
     }
 }

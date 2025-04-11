@@ -6,7 +6,7 @@ pub struct Line<T = i32> {
     end: Vec2<T>,
 }
 
-impl<T> Line<T> {
+impl<T: Number> Line<T> {
     pub fn new(x1: T, y1: T, x2: T, y2: T) -> Self {
         Self {
             start: Vec2::new(x1, y1),
@@ -16,6 +16,13 @@ impl<T> Line<T> {
     
     pub fn new_vec(start: Vec2<T>, end: Vec2<T>) -> Self {
         Self { start, end }
+    }
+
+    pub fn new_slice(slice: [Vec2<T>; 2]) -> Self {
+        Self {
+            start: slice[0],
+            end: slice[1],
+        }
     }
 
     pub fn start(&self) -> &Vec2<T> {

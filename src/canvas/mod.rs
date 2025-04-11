@@ -109,6 +109,10 @@ impl Canvas {
         (self.width, self.height)
     }
 
+    pub fn size_i32(&self) -> (i32, i32) {
+        (self.width as i32, self.height as i32)
+    }
+
     pub fn index(&self, x: i32, y: i32) -> Option<usize> {
         if x < 0 || y < 0 {
             return None;

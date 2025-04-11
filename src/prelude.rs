@@ -7,5 +7,7 @@ pub use crate::math::transform::{Transformer, Transform2D, Transform};
 // TODO: Define option vs options trait
 pub use crate::canvas::{Canvas, color::*, Render, draw_commands::{line::LineOption, image::ImageOptions, circle::CircleOptions}};
 
+pub use crate::window::{App, Frender, WindowTrait};
+pub use crate::window::event::{Event, MouseButton, MouseEvent, MouseMoveEvent, MouseWheelEvent, KeyDownEvent, KeyModifiers};
 
-pub use crate::window::{Window, Key};
+pub use crate::window::minifb::{Window, Key};
