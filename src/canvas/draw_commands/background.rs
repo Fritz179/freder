@@ -20,7 +20,7 @@ impl DrawCommand for Background {
 }
 
 impl Command for BackgroundCommand {
-    fn render(&mut self, canvas: &mut dyn Image) {
+    fn render_canvas(&mut self, canvas: &mut dyn Canvas) {
         // let rect = canvas.view_mut().clip;
         let (w, h) = canvas.size_i32();
 

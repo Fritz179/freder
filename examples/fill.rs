@@ -31,7 +31,7 @@ impl App for FillApp {
         // canvas.draw(line, WHITE);
 
         // Disgusting
-        frender::canvas::CanvasGeneric::draw(canvas, line, WHITE);
+        canvas.draw(line, WHITE);
         canvas.marker(line, RED.middle());
     
         // let line = Line::new(1, h - 2, w - 2, 1);

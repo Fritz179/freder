@@ -31,3 +31,4 @@ pub const TRANSPARENT:  Color = Color(0x00_00_00_00);
 pub const WHITE:        Color = Color(0xFF_FF_FF_FF);
 pub const RED:          Color = Color(0xFF_FF_00_00);
 pub const GRAY:         Color = Color(0xFF_33_33_33);
+pub const BLACK:        Color = Color(0xFF_00_00_00);

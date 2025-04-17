@@ -29,7 +29,8 @@ impl<T: App> App for ScaledApp<T> {
         let w = width / scale;
         let h = height / scale;
     
-        let mut buffer = ImageImpl::new(w as usize, h as usize);
+        let mut inner = CanvasImpl::new(w as usize, h as usize);
+        let mut buffer = ContextImpl::new_canvas(&mut inner);
         buffer.background(0);
     
 

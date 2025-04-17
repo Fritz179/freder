@@ -7,7 +7,7 @@ use crate::prelude::*;
 use std::fmt::Debug;
 
 pub trait Command: Transform + Debug {
-    fn render(&mut self, canvas: &mut dyn Image);
+    fn render_canvas(&mut self, canvas: &mut dyn Canvas);
 }
 
 pub trait CloneCommand: Command {

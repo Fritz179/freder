@@ -21,6 +21,7 @@ impl LinesApp {
 impl App for LinesApp {
     fn render(&mut self, _window: &mut Window, canvas: &mut dyn Canvas) {
         canvas.background(0);
+        let mut canvas = canvas.get_context();
 
         const SCALE: i32 = 10;
     
@@ -31,7 +32,8 @@ impl App for LinesApp {
         let cols: i32 = 5;
         let rows: i32 = 5;
     
-        let mut buffer = ImageImpl::new(w as usize, h as usize);
+        let mut inner = CanvasImpl::new(w as usize, h as usize);
+        let mut buffer = ContextImpl::new_canvas(&mut inner);
         buffer.line(10, 20, 20, 20, RED);
         *canvas.view_mut().transform_mut() = None;
     
@@ -67,7 +69,7 @@ impl App for LinesApp {
                 *canvas.view_mut().transform_mut() = t;
     
                 canvas.image(&buffer, xp , yp, 1);
-                buffer.markers().clear();
+                buffer.markers_mut().clear();
     
                 *canvas.view_mut().transform_mut() = None;
     

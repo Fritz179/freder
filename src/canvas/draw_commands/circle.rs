@@ -50,7 +50,7 @@ impl DrawCommand for Circle {
 }
 
 impl Command for CircleCommand {
-    fn render(&mut self, canvas: &mut dyn Image) {
+    fn render_canvas(&mut self, canvas: &mut dyn Canvas) {
         let (cx, cy) = self.circle.center().to_tuple();
         let mut x = 0;
         let mut y = self.circle.radius();

@@ -140,7 +140,7 @@ impl From<minifb::Key> for Key {
 }
 
 impl Window {
-    pub fn render(&mut self, canvas: &mut dyn Canvas) {
+    pub fn render(&mut self, canvas: &mut CanvasImpl) {
         canvas.render_markers();
 
         // TODO: Do it better
@@ -184,7 +184,7 @@ impl WindowTrait for Window {
             mouse
         };
 
-        let mut canvas = ImageImpl::new(width, height);
+        let mut canvas = CanvasImpl::new(width, height);
 
         while window.is_open() {
             // Set new mouse state
@@ -193,7 +193,9 @@ impl WindowTrait for Window {
             window.mouse.set(MouseButton::Right, window.window.get_mouse_down(minifb::MouseButton::Right));
             window.mouse.set(MouseButton::Middle, window.window.get_mouse_down(minifb::MouseButton::Middle));
 
+
             app.update(&mut window);
+
             app.render(&mut window, &mut canvas);
 
             // Set current state as old state

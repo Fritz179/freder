@@ -26,18 +26,18 @@ impl From<Vec2<i32>> for ImageOption {
 
 #[derive(Debug)]
 pub struct ImageCommand<'a> {
-    image: &'a ImageImpl,
+    image: &'a dyn Canvas,
     options: ImageOption,
     markers: Vec<Box<dyn CloneCommand>>,
 }
 
-impl<'a> DrawCommand for &'a ImageImpl {
+impl<'a, T: Canvas> DrawCommand for &'a T {
     type Options = ImageOption;
     type Command = ImageCommand<'a>;
 
     fn into_renderable(self, options: impl Into<Self::Options>) -> Self::Command {
         let options = options.into();
-        let mut markers = self.markers.clone();
+        let mut markers = self.markers().clone();
 
         let transform = Transform2D::new(options.destination, options.scaling);
         for marker in &mut markers {
@@ -52,9 +52,31 @@ impl<'a> DrawCommand for &'a ImageImpl {
     }
 }
 
+impl<'a> DrawCommand for &'a dyn Canvas {
+    type Options = ImageOption;
+    type Command = ImageCommand<'a>;
+
+    fn into_renderable(self, options: impl Into<Self::Options>) -> Self::Command {
+        let options = options.into();
+        let mut markers = self.markers().clone();
+
+        let transform = Transform2D::new(options.destination, options.scaling);
+        for marker in &mut markers {
+            marker.transform(&transform);
+        }
+
+        ImageCommand {
+            image: self,
+            options: options,
+            markers,
+        }
+    }
+}
+
+
 impl<'a> Command for ImageCommand<'a> {
-    fn render(&mut self, canvas: &mut dyn Image) {
-        canvas.markers().append(&mut self.markers);
+    fn render_canvas(&mut self, canvas: &mut dyn Canvas) {
+        canvas.markers_mut().append(&mut self.markers);
 
         let (width, height) = self.image.size();
         let (x, y) = self.options.destination.as_tuple();

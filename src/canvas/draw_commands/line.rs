@@ -51,7 +51,7 @@ impl DrawCommand for Line {
 }
 
 impl Command for LineCommand {
-    fn render(&mut self, canvas: &mut dyn Image) {
+    fn render_canvas(&mut self, canvas: &mut dyn Canvas) {
         let ((x1, y1), (x2, y2)) = self.line.to_tuple();
 
         // Center the line to the correct pixel

@@ -64,3 +64,5 @@ Where does the Event get Transform2D?
 
 // Simple Canvas, only for images
 // Canvas, transfrom + markers?
+
+draw vs draw_command, which transforms?

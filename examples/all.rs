@@ -29,10 +29,8 @@ impl App for AllApp {
     fn render(&mut self, window: &mut Window, canvas: &mut dyn Canvas) {
         self.demos[self.current].render(window, canvas);
 
-        window.render(canvas);
-
         if window.key_just_pressed(Key::S) {
-            canvas.save_image_path("out/test.png");
+            // canvas.save_image_path("out/test.png");
         }
 
         if window.key_just_pressed(Key::N) {

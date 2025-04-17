@@ -44,13 +44,13 @@ impl App for BuilderApp {
                 }
             } else {
                 current.update(mouse_pos);
-                current.render(canvas);
+                current.render_context(canvas);
                 self.builder.replace(current);
             }
         }
 
         for x in self.data.iter() {
-            x.render(canvas);
+            x.render_context(canvas);
         }
     }
 }
@@ -69,7 +69,7 @@ impl<const N: usize> Builder<N> {
 }
 
 impl Render for Builder<1> {
-    fn render(&self, canvas: &mut dyn Image) {
+    fn render_context(&self, canvas: &mut dyn Canvas) {
         canvas.draw(Line::new_vec(self.points[0], self.points[0]), RED)
     }
 }
@@ -86,7 +86,7 @@ impl ShapeBuilder for Builder<1> {
 
 
 impl Render for Builder<2> {
-    fn render(&self, canvas: &mut dyn Image) {
+    fn render_context(&self, canvas: &mut dyn Canvas) {
         canvas.draw(Line::new_slice(self.points), RED)
     }
 }
