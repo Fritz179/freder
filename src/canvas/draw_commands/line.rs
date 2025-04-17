@@ -3,12 +3,12 @@ use crate::prelude::*;
 use super::{Command, DrawCommand};
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
-pub struct LineOptions {
+pub struct LineOption {
     color: Color,
     pixel_size: Vec2,
 }
 
-impl<C: Into<Color>> From<C> for LineOptions {
+impl<C: Into<Color>> From<C> for LineOption {
     fn from(from: C) -> Self {
         Self {
             color: from.into(),
@@ -17,8 +17,8 @@ impl<C: Into<Color>> From<C> for LineOptions {
     }
 }
 
-pub trait LineOption: Into<LineOptions> {
-    fn middle(self) -> LineOptions {
+pub trait LineOptionTrait: Into<LineOption> {
+    fn middle(self) -> LineOption {
         let mut options = self.into();
         options.pixel_size = Vec2::one();
 
@@ -26,12 +26,12 @@ pub trait LineOption: Into<LineOptions> {
     }
 }
 
-impl<T: Into<LineOptions>> LineOption for T {}
+impl<T: Into<LineOption>> LineOptionTrait for T {}
 
 #[derive(Debug, Clone, Copy)]
 pub struct LineCommand {
     line: Line,
-    options: LineOptions,
+    options: LineOption,
 }
 
 impl Transform for LineCommand {
@@ -42,7 +42,7 @@ impl Transform for LineCommand {
 }
 
 impl DrawCommand for Line {
-    type Options = LineOptions;
+    type Options = LineOption;
     type Command = LineCommand;
 
     fn into_renderable(self, options: impl Into<Self::Options>) -> Self::Command {
@@ -51,7 +51,7 @@ impl DrawCommand for Line {
 }
 
 impl Command for LineCommand {
-    fn render(&mut self, canvas: &mut Canvas) {
+    fn render(&mut self, canvas: &mut dyn Image) {
         let ((x1, y1), (x2, y2)) = self.line.to_tuple();
 
         // Center the line to the correct pixel

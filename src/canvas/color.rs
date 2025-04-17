@@ -26,7 +26,8 @@ impl From<u32> for Color {
     }
 }
 
-//                               A  R  G  B
-pub const WHITE: Color = Color(0xFF_FF_FF_FF);
-pub const RED:   Color = Color(0xFF_FF_00_00);
-pub const GRAY:  Color = Color(0xFF_33_33_33);
+//                                      A  R  G  B
+pub const TRANSPARENT:  Color = Color(0x00_00_00_00);
+pub const WHITE:        Color = Color(0xFF_FF_FF_FF);
+pub const RED:          Color = Color(0xFF_FF_00_00);
+pub const GRAY:         Color = Color(0xFF_33_33_33);

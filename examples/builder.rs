@@ -2,41 +2,38 @@ use frender::prelude::*;
 
 #[path = "common/mod.rs"]
 mod common;
-use common::App10x;
+use common::ScaledApp;
 
 const WIDTH: usize = 1280;
 const HEIGHT: usize = 720;
 
 #[allow(unused)]
 fn main() {
-    Frender::new("Test", WIDTH, HEIGHT, BuilderApp::new());
+    Window::new("Test", WIDTH, HEIGHT, BuilderApp::new());
 }
 
 pub struct BuilderApp {
     data: Vec<Box<dyn Render>>,
     builder: Option<Box<dyn ShapeBuilder>>,
-    pressed: bool,
 }
 
 impl BuilderApp {
-    pub fn new() -> App10x<Self> {
-        App10x::new(Self {
+    pub fn new() -> ScaledApp<Self> {
+        ScaledApp::new(Self {
             data: vec![],
             builder: None,
-            pressed: false,
-        })
+        }, 20)
     }
 }
 
 impl App for BuilderApp {
-    fn render(&mut self, window: &mut Window, canvas: &mut Canvas) {
-        let mouse_pos = window.get_mouse_pos().unwrap();
-        let mouse_down = window.is_mouse_down();
+    fn render(&mut self, window: &mut Window, canvas: &mut dyn Canvas) {
+        let mouse_pos = window.mouse_pos();
 
         self.builder.get_or_insert(Builder::new([mouse_pos]));
 
         if let Some(mut current) = self.builder.take() {
-            if mouse_down && !self.pressed {
+            if window.mouse_just_pressed(MouseButton::Left) {
                 match current.commit() {
                     BuildDecision::Done(command) => {
                         self.data.push(command);
@@ -51,8 +48,6 @@ impl App for BuilderApp {
                 self.builder.replace(current);
             }
         }
-
-        self.pressed = mouse_down;
 
         for x in self.data.iter() {
             x.render(canvas);
@@ -74,7 +69,7 @@ impl<const N: usize> Builder<N> {
 }
 
 impl Render for Builder<1> {
-    fn render(&self, canvas: &mut Canvas) {
+    fn render(&self, canvas: &mut dyn Image) {
         canvas.draw(Line::new_vec(self.points[0], self.points[0]), RED)
     }
 }
@@ -91,7 +86,7 @@ impl ShapeBuilder for Builder<1> {
 
 
 impl Render for Builder<2> {
-    fn render(&self, canvas: &mut Canvas) {
+    fn render(&self, canvas: &mut dyn Image) {
         canvas.draw(Line::new_slice(self.points), RED)
     }
 }

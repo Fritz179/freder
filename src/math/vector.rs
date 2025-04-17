@@ -36,7 +36,7 @@ impl<T: One, const N: usize> One for Vector<T, N> {
 
 pub type Vec2<T = i32> = Vector<T, 2>;
 
-impl<T> Vec2<T> {
+impl<T: Number> Vec2<T> {
     pub fn new(x: T, y: T) -> Self {
         Self ([x, y])
     }
@@ -65,8 +65,8 @@ impl<T> Vec2<T> {
         self.0[1] = y;
     }
 
-    pub fn as_tuple(&self) -> (&T, &T) {
-        (&self.0[0], &self.0[1])
+    pub fn as_tuple(&self) -> (T, T) {
+        (self.0[0], self.0[1])
     }
 
     pub fn to_tuple(self) -> (T, T) {

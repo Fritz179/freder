@@ -3,19 +3,19 @@ use crate::prelude::*;
 use super::{CloneCommand, Command, DrawCommand};
 
 #[derive(Debug)]
-pub struct ImageOptions {
+pub struct ImageOption {
     destination: Vec2<i32>,
     scaling: Vec2<i32>,
 }
 
-impl ImageOptions {
+impl ImageOption {
     pub fn scaling(mut self, scale: i32) -> Self {
         self.scaling = Vec2::new(scale, scale);
         self
     }
 }
 
-impl From<Vec2<i32>> for ImageOptions {
+impl From<Vec2<i32>> for ImageOption {
     fn from(destination: Vec2<i32>) -> Self {
         Self { 
             destination,
@@ -25,15 +25,15 @@ impl From<Vec2<i32>> for ImageOptions {
 }
 
 #[derive(Debug)]
-pub struct Image<'a> {
-    image: &'a Canvas,
-    options: ImageOptions,
+pub struct ImageCommand<'a> {
+    image: &'a ImageImpl,
+    options: ImageOption,
     markers: Vec<Box<dyn CloneCommand>>,
 }
 
-impl<'a> DrawCommand for &'a Canvas {
-    type Options = ImageOptions;
-    type Command = Image<'a>;
+impl<'a> DrawCommand for &'a ImageImpl {
+    type Options = ImageOption;
+    type Command = ImageCommand<'a>;
 
     fn into_renderable(self, options: impl Into<Self::Options>) -> Self::Command {
         let options = options.into();
@@ -44,7 +44,7 @@ impl<'a> DrawCommand for &'a Canvas {
             marker.transform(&transform);
         }
 
-        Image {
+        ImageCommand {
             image: self,
             options: options,
             markers,
@@ -52,9 +52,9 @@ impl<'a> DrawCommand for &'a Canvas {
     }
 }
 
-impl<'a> Command for Image<'a> {
-    fn render(&mut self, canvas: &mut Canvas) {
-        canvas.markers.append(&mut self.markers);
+impl<'a> Command for ImageCommand<'a> {
+    fn render(&mut self, canvas: &mut dyn Image) {
+        canvas.markers().append(&mut self.markers);
 
         let (width, height) = self.image.size();
         let (x, y) = self.options.destination.as_tuple();
@@ -77,7 +77,8 @@ impl<'a> Command for Image<'a> {
             for j in 0..height as i32 {
                 let Some(color) = self.image.pixel(i, j) else { continue };
                 for dy in 0..*scale.y() {
-                    canvas.pixel_slice_mut(x + i * *scale.x()..x + i * *scale.x() + *scale.x(), y + j * *scale.y() + dy).fill(color);
+                    let x = x + i * *scale.x()..x + i * *scale.x() + *scale.x();
+                    canvas.pixels_mut(x, y + j * *scale.y() + dy).color(color);
                 }
             }
         }
@@ -85,7 +86,7 @@ impl<'a> Command for Image<'a> {
     }
 }
 
-impl<'a> Transform for Image<'a> {
+impl<'a> Transform for ImageCommand<'a> {
     fn transform(&mut self, transform: &dyn Transformer<i32, 2>) {
         for marker in &mut self.markers {
             marker.transform(transform);

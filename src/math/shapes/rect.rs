@@ -6,7 +6,7 @@ pub struct Rect<T = i32> {
     size: Vec2<T>,
 }
 
-impl<T> Rect<T> {
+impl<T: Number> Rect<T> {
     pub fn new(x: T, y: T, width: T, height: T) -> Self {
         Self {
             position: Vec2::new(x, y),

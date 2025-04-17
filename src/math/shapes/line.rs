@@ -49,7 +49,7 @@ impl<T: Number> Line<T> {
         self.end = end;
     }
 
-    pub fn as_tuple(&self) -> ((&T, &T), (&T, &T)) {
+    pub fn as_tuple(&self) -> ((T, T), (T, T)) {
         (self.start.as_tuple(), self.end.as_tuple())
     }
 

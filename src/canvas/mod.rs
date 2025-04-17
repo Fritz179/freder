@@ -1,6 +1,6 @@
 use std::ops::Range;
 
-use draw_commands::{background::{Background, BackgroundOptions}, image::ImageOptions, line::LineOptions, CloneCommand, Command, DrawCommand};
+use draw_commands::{background::{Background, BackgroundOptions}, image::ImageOption, line::LineOption, circle::CircleOption, CloneCommand, Command, DrawCommand};
 
 use crate::prelude::*;
 
@@ -8,7 +8,7 @@ pub mod color;
 pub mod draw_commands;
 
 pub trait Render {
-    fn render(&self, canvas: &mut Canvas);
+    fn render(&self, canvas: &mut dyn Image);
 }
 
 #[derive(Debug)]
@@ -26,8 +26,35 @@ impl View {
     }
 }
 
+pub trait Coloring {
+    fn color(&mut self, color: Color);
+}
+
+impl Coloring for Option<&mut [Color]> {
+    fn color(&mut self, color: Color) {
+        if let Some(pixels) = self {
+            pixels.fill(color);
+        }
+    }
+}
+
+impl Coloring for Option<&mut Color> {
+    fn color(&mut self, color: Color) {
+        if let Some(pixels) = self {
+            **pixels = color;
+        }
+    }
+}
+
 #[derive(Debug)]
-pub struct Canvas {
+pub struct SimpleCanvasImpl {
+    buffer: Vec<Color>,
+    width: usize,
+    height: usize,
+}
+
+#[derive(Debug)]
+pub struct ImageImpl {
     buffer: Vec<Color>,
     width: usize,
     height: usize,
@@ -36,8 +63,116 @@ pub struct Canvas {
     markers: Vec<Box<dyn CloneCommand>>,
 }
 
-impl Canvas {
-    pub fn new(width: usize, height: usize) -> Self {
+pub trait Image {
+    fn new(width: usize, height: usize) -> Self where Self: Sized;
+    fn new_buffer(width: usize, height: usize, buffer: Vec<Color>) -> Self where Self: Sized;
+
+    fn size(&self) -> (usize, usize);
+    fn size_i32(&self) -> (i32, i32);
+
+    fn index(&self, x: i32, y: i32) -> Option<usize> {
+        if x < 0 || y < 0 {
+            return None;
+        }
+
+        let (w, h) = self.size();
+        let (x, y) = (x as usize, y as usize);
+
+        if x >= w || y >= h {
+            return None;
+        }
+
+        Some(y * w + x)
+    }
+
+    fn buffer(&self) -> &[Color];
+    fn buffer_mut(&mut self) -> &mut [Color];
+
+    fn pixels(&self, x: Range<i32>, y: i32) -> Option<&[Color]> {
+        let x1 = self.index(x.start, y)?;
+        let x2 = self.index(x.end - 1, y)?;
+
+        Some(&self.buffer()[x1..=x2])
+    }
+
+    fn pixels_mut(&mut self, x: Range<i32>, y: i32) -> Option<&mut [Color]> {
+        let x1 = self.index(x.start, y)?;
+        let x2 = self.index(x.end - 1, y)?;
+
+        Some(&mut self.buffer_mut()[x1..=x2])
+    }
+
+    fn pixel(&self, x: i32, y: i32) -> Option<Color> {
+        Some(self.buffer()[self.index(x, y)?])
+    }
+
+    fn pixel_mut(&mut self, x: i32, y: i32) -> Option<&mut Color> {
+        let i = self.index(x, y)?;
+        Some(&mut self.buffer_mut()[i])
+    }
+
+    fn draw_command(&mut self, command: &mut dyn Command);
+
+    fn markers(&mut self) -> &mut Vec<Box<dyn CloneCommand>>;
+    fn render_markers(&mut self);
+}
+
+pub trait ImageGeneric: Image {
+    fn draw<T: DrawCommand, O: Into<T::Options>>(&mut self, shape: T, options: O);
+
+    fn background(&mut self, color: impl Into<BackgroundOptions>) {
+        self.draw(Background, color);
+    }
+
+    fn line<O: Into<LineOption>>(&mut self, x1: i32, y1: i32, x2: i32, y2: i32, options: O) {
+        self.draw(Line::new(x1, y1, x2, y2), options);
+    }
+
+    fn image(&mut self, image: &ImageImpl, x: i32, y: i32, scale: i32) {
+        self.draw(image, <Vec2 as Into<ImageOption>>::into(Vec2::new(x, y)).scaling(scale));
+    }
+
+    fn circle<O: Into<CircleOption>>(&mut self, x: i32, y: i32, radius: i32, options: O) {
+        self.draw(Circle::new(x, y, radius), options);
+    }
+
+    fn from_image_path(path: &str) -> Self where Self: Sized{
+        let image = image::open(path).unwrap().to_rgba8();
+        let (width, height) = image.dimensions();
+
+        let buffer = image.into_raw();
+        
+        let buffer = buffer.chunks_exact(4)
+            .map(|chunk| u32::from_ne_bytes(chunk.try_into().unwrap()).into())
+            .collect();
+
+        Self::new_buffer(width as usize, height as usize, buffer)
+    }
+
+    fn save_image_path(&self, path: &str) {
+        let (w, h) = self.size();
+        let mut image = image::ImageBuffer::new(w as u32, h as u32);
+
+        // Iterate over the coordinates and pixels of the image
+        for (pixel, source) in image.pixels_mut().zip(self.buffer().iter()) {
+            *pixel = image::Rgb([source.r(), source.g(), source.b()]);
+        }
+
+        image.save(path).unwrap();
+    }
+}
+
+pub trait Canvas: Image {
+    fn view_mut(&mut self) -> &mut View;
+}
+
+pub trait CanvasGeneric: Canvas {
+    fn draw<T: DrawCommand, O: Into<T::Options>>(&mut self, shape: T, options: O);
+    fn marker<T: DrawCommand, O: Into<T::Options>>(&mut self, shape: T, options: O) where <T as DrawCommand>::Command: CloneCommand + 'static;
+}
+
+impl Image for ImageImpl {
+    fn new(width: usize, height: usize) -> Self {
         let clip = Rect::new(0, 0, width as i32, height as i32);
 
         Self {
@@ -52,7 +187,7 @@ impl Canvas {
         }
     }
 
-    pub fn new_buffer(width: usize, height: usize, buffer: Vec<Color>) -> Self {
+    fn new_buffer(width: usize, height: usize, buffer: Vec<Color>) -> Self {
         assert_eq!(buffer.len(), width * height);
 
         let clip = Rect::new(0, 0, width as i32, height as i32);
@@ -69,154 +204,87 @@ impl Canvas {
         }
     }
 
-    pub fn from_image_path(path: &str) -> Self {
-        let image = image::open(path).unwrap().to_rgba8();
-        let (width, height) = image.dimensions();
-
-        let buffer = image.into_raw();
-        
-        let buffer = buffer.chunks_exact(4)
-            .map(|chunk| u32::from_ne_bytes(chunk.try_into().unwrap()).into())
-            .collect();
-
-        Self::new_buffer(width as usize, height as usize, buffer)
-    }
-
-    pub fn save_image_path(&self, path: &str) {
-        let mut image = image::ImageBuffer::new(self.width as u32, self.height as u32);
-
-        // Iterate over the coordinates and pixels of the image
-        for (pixel, source) in image.pixels_mut().zip(self.buffer.iter()) {
-            *pixel = image::Rgb([source.r(), source.g(), source.b()]);
-        }
-
-        image.save(path).unwrap();
-    }
-
-    pub fn get_buffer(&self) -> &Vec<Color> {
+    fn buffer(&self) -> &[Color] {
         &self.buffer
     }
 
-    pub fn width(&self) -> usize {
-        self.width
+    fn buffer_mut(&mut self) -> &mut [Color] {
+        &mut self.buffer
     }
 
-    pub fn height(&self) -> usize {
-        self.height
-    }
-
-    pub fn size(&self) -> (usize, usize) {
+    fn size(&self) -> (usize, usize) {
         (self.width, self.height)
     }
 
-    pub fn size_i32(&self) -> (i32, i32) {
+    fn size_i32(&self) -> (i32, i32) {
         (self.width as i32, self.height as i32)
     }
 
-    pub fn index(&self, x: i32, y: i32) -> Option<usize> {
-        if x < 0 || y < 0 {
-            return None;
-        }
-
-        let (x, y) = (x as usize, y as usize);
-
-        if x >= self.width || y >= self.height {
-            return None;
-        }
-
-        Some(y * self.width + x)
+    fn draw_command(&mut self, command: &mut dyn Command) {
+        command.render(self);
     }
 
-    pub fn pixel(&self, x: i32, y: i32) -> Option<Color> {
-        Some(self.buffer[self.index(x, y)?])
+    fn markers(&mut self) -> &mut Vec<Box<dyn CloneCommand>> {
+        &mut self.markers
     }
 
-    pub fn pixel_mut(&mut self, x: i32, y: i32) -> Option<&mut Color> {
-        let i = self.index(x, y)?;
-        Some(&mut self.buffer[i])
-    }
+    // fn marker<T: DrawCommand, O: Into<T::Options>>(&mut self, shape: T, options: O) where <T as DrawCommand>::Command: CloneCommand + 'static {
+    //     let mut command = shape.into_renderable(options);
 
-    pub fn pixel_slice(&self, x: Range<i32>, y: i32) -> &[Color] {
-        let Some(x1) = self.index(x.start, y) else {
-            return &[]
-        };
+    //     if let Some(transform) = self.view.transform {
+    //         command.transform(&transform);
+    //     }
 
-        let Some(x2) = self.index(x.end - 1, y) else {
-            return &[]
-        };
+    //     self.markers.push(Box::new(command));
+    // }
 
-        &self.buffer[x1..=x2]
-    }
-
-    pub fn pixel_slice_mut(&mut self, x: Range<i32>, y: i32) -> &mut [Color] {
-        let Some(x1) = self.index(x.start, y) else {
-            return &mut[]
-        };
-
-        let Some(x2) = self.index(x.end - 1, y) else {
-            return &mut[]
-        };
-
-        &mut self.buffer[x1..=x2]
-    }
-
-    pub fn view_mut(&mut self) -> &mut View {
-        &mut self.view
-    }
-}
-
-impl Canvas {
-    pub fn render(&mut self, instance: &dyn Render) {
-        instance.render(self);
-    }
-
-    pub fn marker<T: DrawCommand, O: Into<T::Options>>(&mut self, shape: T, options: O) where <T as DrawCommand>::Command: CloneCommand + 'static {
-        let mut command = shape.into_renderable(options);
-
-        if let Some(transform) = self.view.transform {
-            command.transform(&transform);
-        }
-
-        self.markers.push(Box::new(command));
-    }
-
-    pub fn clear_markers(&mut self) {
-        self.markers.clear();
-    }
-
-    pub fn render_markers(&mut self) {
+    fn render_markers(&mut self) {
         let markers = std::mem::take(&mut self.markers);
 
         for mut marker in markers {
             marker.render(self);
         }
 
-        self.clear_markers();
+        self.markers().clear();
     }
+}
 
-    pub fn draw<T: DrawCommand, O: Into<T::Options>>(&mut self, shape: T, options: O) {
+impl<C: Image + ?Sized> ImageGeneric for C {
+    fn draw<T: DrawCommand, O: Into<T::Options>>(&mut self, shape: T, options: O) {
         let mut command = shape.into_renderable(options);
 
-        if let Some(transform) = self.view.transform {
+        self.draw_command(&mut command);
+    }
+}
+
+impl<C: Canvas + ?Sized> CanvasGeneric for C {
+    fn draw<T: DrawCommand, O: Into<T::Options>>(&mut self, shape: T, options: O) {
+        let mut command = shape.into_renderable(options);
+
+        if let Some(transform) = self.view_mut().transform {
             command.transform(&transform);
         }
 
-        command.render(self);
+        self.draw_command(&mut command);
     }
 
-    pub fn background(&mut self, color: impl Into<BackgroundOptions>) {
-        self.draw(Background, color);
+    fn marker<T: DrawCommand, O: Into<T::Options>>(&mut self, shape: T, options: O) where <T as DrawCommand>::Command: CloneCommand + 'static {
+        let mut command = shape.into_renderable(options);
+
+        if let Some(transform) = self.view_mut().transform {
+            command.transform(&transform);
+        }
+
+        self.markers().push(Box::new(command));
+    }
+}
+
+impl Canvas for ImageImpl {
+    fn view_mut(&mut self) -> &mut View {
+        &mut self.view
     }
 
-    pub fn line<O: Into<LineOptions>>(&mut self, x1: i32, y1: i32, x2: i32, y2: i32, options: O) {
-        self.draw(Line::new(x1, y1, x2, y2), options);
-    }
-
-    pub fn image(&mut self, image: &Canvas, x: i32, y: i32, scale: i32) {
-        self.draw(image, <Vec2 as Into<ImageOptions>>::into(Vec2::new(x, y)).scaling(scale));
-    }
-
-    pub fn circle<O: Into<CircleOptions>>(&mut self, x: i32, y: i32, radius: i32, options: O) {
-        self.draw(Circle::new(x, y, radius), options);
-    }
+    // fn render(&mut self, instance: &dyn Render) {
+    //     instance.render(self);
+    // }
 }

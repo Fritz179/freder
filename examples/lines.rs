@@ -5,7 +5,7 @@ const HEIGHT: usize = 720;
 
 #[allow(unused)]
 fn main() {
-    Frender::new("Test", WIDTH, HEIGHT, LinesApp::new());
+    Window::new("Test", WIDTH, HEIGHT, LinesApp::new());
 }
 
 pub struct LinesApp {
@@ -19,15 +19,7 @@ impl LinesApp {
 }
 
 impl App for LinesApp {
-    fn event(&mut self, _window: &mut Window, _event: Event) {
-        // Handle events here
-    }
-
-    fn update(&mut self, _window: &mut Window) {
-        // Update logic here
-    }
-
-    fn render(&mut self, _window: &mut Window, canvas: &mut Canvas) {
+    fn render(&mut self, _window: &mut Window, canvas: &mut dyn Canvas) {
         canvas.background(0);
 
         const SCALE: i32 = 10;
@@ -39,7 +31,8 @@ impl App for LinesApp {
         let cols: i32 = 5;
         let rows: i32 = 5;
     
-        let mut buffer = Canvas::new(w as usize, h as usize);
+        let mut buffer = ImageImpl::new(w as usize, h as usize);
+        buffer.line(10, 20, 20, 20, RED);
         *canvas.view_mut().transform_mut() = None;
     
     
@@ -74,7 +67,7 @@ impl App for LinesApp {
                 *canvas.view_mut().transform_mut() = t;
     
                 canvas.image(&buffer, xp , yp, 1);
-                buffer.clear_markers();
+                buffer.markers().clear();
     
                 *canvas.view_mut().transform_mut() = None;
     

@@ -13,7 +13,6 @@ const WIDTH: usize = 1280;
 const HEIGHT: usize = 720;
 
 struct AllApp {
-    saved: bool,
     demos: Vec<Box<dyn App>>,
     current: usize,
 }
@@ -27,16 +26,19 @@ impl App for AllApp {
         self.demos[self.current].update(window);
     }
 
-    fn render(&mut self, window: &mut Window, canvas: &mut Canvas) {
+    fn render(&mut self, window: &mut Window, canvas: &mut dyn Canvas) {
         self.demos[self.current].render(window, canvas);
 
         window.render(canvas);
 
-        if window.is_key_down(Key::S) != self.saved {
-            self.saved = !self.saved;
+        if window.key_just_pressed(Key::S) {
+            canvas.save_image_path("out/test.png");
+        }
 
-            if self.saved {
-                canvas.save_image_path("out/test.png");
+        if window.key_just_pressed(Key::N) {
+            self.current += 1;
+            if self.current >= self.demos.len() {
+                self.current = 0;
             }
         }
     }
@@ -44,7 +46,6 @@ impl App for AllApp {
 
 fn main() {
     let app = AllApp {
-        saved: false,
         demos: vec![
             Box::new(LinesApp::new()), 
             Box::new(FillApp::new()),
@@ -53,5 +54,5 @@ fn main() {
         current: 2,
     };
 
-    Frender::new("Test", WIDTH, HEIGHT, app);
+    Window::new("Test", WIDTH, HEIGHT, app);
 }
