@@ -28,8 +28,8 @@ pub trait App {
 }
 
 pub struct MouseManager {
-    current:[bool; std::mem::variant_count::<MouseButton>()],
-    previous: [bool; std::mem::variant_count::<MouseButton>()],
+    current:[bool; MouseButton::VARIANT_COUNT],
+    previous: [bool; MouseButton::VARIANT_COUNT],
 
     position: Vec2<i32>,
     prev_position: Vec2<i32>,
@@ -38,8 +38,8 @@ pub struct MouseManager {
 impl MouseManager {
     fn new(mouse_pos: Vec2) -> Self {
         Self {
-            current: [false; std::mem::variant_count::<MouseButton>()],
-            previous: [false; std::mem::variant_count::<MouseButton>()],
+            current: [false; MouseButton::VARIANT_COUNT],
+            previous: [false; MouseButton::VARIANT_COUNT],
             position: mouse_pos,
             prev_position: mouse_pos,
         }
@@ -80,15 +80,15 @@ impl MouseManager {
 }
 
 pub struct KeyboardManager {
-    current: [bool; std::mem::variant_count::<Key>()],
-    previous: [bool; std::mem::variant_count::<Key>()],
+    current: [bool; Key::VARIANT_COUNT],
+    previous: [bool; Key::VARIANT_COUNT],
 }
 
 impl KeyboardManager {
     fn new() -> Self {
         Self {
-            current: [false; std::mem::variant_count::<Key>()],
-            previous: [false; std::mem::variant_count::<Key>()],
+            current: [false; Key::VARIANT_COUNT],
+            previous: [false; Key::VARIANT_COUNT],
         }
     }
 

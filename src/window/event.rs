@@ -10,7 +10,7 @@ pub enum Event {
     Quit,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, variant_count::VariantCount)]
 pub enum MouseButton {
     Left,
     Right,
@@ -88,7 +88,7 @@ impl KeyModifiers {
     pub fn cmd(&self) -> bool { self.l_cmd() || self.r_cmd() }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, variant_count::VariantCount)]
 pub enum Key {
     Key0,
     Key1,

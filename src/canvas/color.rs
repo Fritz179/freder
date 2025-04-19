@@ -18,6 +18,10 @@ impl Color {
     pub fn b(&self) -> u8 {
         self.0 as u8
     }
+
+    pub fn is_transparent(&self) -> bool {
+        self.0 & 0xFF_00_00_00 == 0
+    }
 }
 
 impl From<u32> for Color {

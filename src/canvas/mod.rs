@@ -14,9 +14,6 @@ pub trait Render {
 
 #[derive(Debug)]
 pub struct View {
-        // Where the view is on the context
-        clip: Rect,
-
         // How the view is transformed
         transform: Option<Transform2D>,
 }
@@ -250,13 +247,9 @@ impl<'a> Context for ContextImpl<'a> {
 
 impl<'a> ContextImpl<'a> {
     pub fn new_canvas(canvas: &'a mut dyn Canvas) -> Self {
-        let (w, h) = canvas.size_i32();
-        let clip = Rect::new(0, 0, w, h);
-
         Self {
             canvas,
             view: View {
-                clip,
                 transform: None,
             },
         }
